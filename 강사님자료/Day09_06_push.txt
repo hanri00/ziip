@@ -1,0 +1,129 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	class Node {
+		// 돌의 위치
+		int rockRow;
+		int rockCol; 
+		// 사람의 위치
+		int playerRow;
+		int playerCol; 
+		// 거리(visited에 기록하지 않고 queue에 들고다님)
+		int dist; 
+		Node(int rockRow, int rockCol, int playerRow ,int playerCol, int dist) {
+			this.rockRow = rockRow;
+			this.rockCol = rockCol;
+			this.playerRow = playerRow;
+			this.playerCol = playerCol;
+			this.dist = dist;
+		}
+	}
+	
+	class Coord {
+		int row;
+		int col;
+		Coord(int row, int col) {
+			this.row = row;
+			this.col = col; 
+		}
+	}
+	
+	// 상 우 하 좌 
+	int[] dirRow = {-1, 0, 1, 0};
+	int[] dirCol = {0, 1, 0, -1}; 
+	
+	// game map 
+	int[][] puzzle; 
+	int n; 
+	
+	// 돌에 대한 방문 기록을 할 DAT
+	// [row][col][dir] : row,col을 dir방향으로 이동하여 도착했다.
+	int[][][] rockVisited;
+	int rockMoveCnt; // 초기화를 가볍게하기 위해 '찾았다'라는 기록값을 그때그때 바꿔서 사용하기 위함
+	
+	int[][] playerVisited;
+	int playerMoveCnt; // 초기화를 가볍게하기 위해 '찾았다'라는 기록값을 그때그때 바꿔서 사용하기 위함
+
+	public void init(int N, int[][] mMap){
+		puzzle = mMap;
+		n = N; 
+		rockVisited = new int[N][N][4];
+		playerVisited = new int[N][N];
+		playerMoveCnt = 0; 
+		rockMoveCnt = 0; 
+	    return;
+	}
+	
+	public boolean canGo(int destRow, int destCol, int playerRow, int playerCol, int rockRow, int rockCol) {
+		// (row,col) -> (destRow, destCol) 갈수 있는지 확인
+		ArrayDeque<Coord>q = new ArrayDeque<>();
+		q.add(new Coord(playerRow, playerCol));
+		
+		playerMoveCnt++;
+		
+		while(!q.isEmpty()) {
+			Coord now = q.remove();
+			
+			// 목적지까지 이동이 가능한 것을 확인
+			if(now.row == destRow && now.col == destCol)
+				return true; 
+			
+			for(int i = 0; i < 4; i++) {
+				int nxtRow = now.row + dirRow[i];
+				int nxtCol = now.col + dirCol[i];
+				if(nxtRow < 0 || nxtCol < 0 || nxtRow >= n || nxtCol >= n)
+					continue;
+				if(playerVisited[nxtRow][nxtCol] == playerMoveCnt)
+					continue;
+				if(puzzle[nxtRow][nxtCol] == 1)
+					continue;
+				// 돌이 있는 곳은 지나지 못함
+				if(now.row == rockRow && now.col == rockCol)
+					continue;
+				playerVisited[nxtRow][nxtCol] = playerMoveCnt;
+				q.add(new Coord(nxtRow ,nxtCol));
+			}
+		}
+		
+		// 전부 확인했지만 이동이 불가능
+		return false; 
+	}
+	
+	public int push(int mRockR, int mRockC, int mDir, int mGoalR, int mGoalC) {
+		ArrayDeque<Node>q = new ArrayDeque<>();
+		q.add(new Node(mRockR, mRockC, mRockR+dirRow[mDir], mRockC+dirCol[mDir], 0));
+		
+		rockMoveCnt++;
+		
+		while(!q.isEmpty()) {
+			Node now = q.remove();
+			
+			if(now.rockRow == mGoalR && now.rockCol == mGoalC)
+				// 돌이 목적지에 도착
+				return now.dist;
+			
+			// now로부터 돌을 상하좌우로 이동시켜볼겁니다.
+			for(int i = 0; i < 4; i++) {
+				int nxtRow = now.rockRow + dirRow[i];
+				int nxtCol = now.rockCol + dirCol[i]; 
+				if(nxtRow < 0 || nxtCol < 0 || nxtRow >= n || nxtCol >= n)
+					continue; 
+				if(rockVisited[nxtRow][nxtCol][i] == rockMoveCnt) // 이번에 진행하는 시나리오에서 찾은적 있음
+					continue;
+				if(puzzle[nxtRow][nxtCol] == 1)
+					continue; 
+				
+				// 지금 사람이 있는 위치에서 원하는 위치로 이동이 가능?
+				if(!canGo(now.rockRow-dirRow[i], now.rockCol-dirCol[i], now.playerRow, now.playerCol, now.rockRow, now.rockCol))
+					continue;
+				
+				rockVisited[nxtRow][nxtCol][i] = rockMoveCnt; 
+				q.add(new Node(nxtRow, nxtCol, now.rockRow, now.rockCol, now.dist + 1));
+			}
+		}
+		//못가는 경우는 없다 했으니 -> 그냥 여기서는 아무거나 return
+	    return 0;
+	}
+}

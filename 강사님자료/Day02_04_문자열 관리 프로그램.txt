@@ -1,0 +1,88 @@
+import java.io.*;
+import java.util.*; 
+
+class UserSolution {
+  
+	//E"ABCD"E
+	
+	ArrayDeque<Character> mainString;
+	boolean dir; // true : 정방향, false : 역방향
+	int cntSubstr[]; // 부분 문자열에 대한 index => 해당 부분문자열의 개수
+	
+	int getIndex(String str) {
+		int index = 0;
+		for(int i = 0; i < str.length(); i++)
+			index = index * 27 + (str.charAt(i) - 'a' + 1);
+		return index;
+	}
+	
+	// 개수를 관리하는 함수 <- 문자 1개 변동
+	void update(int oper) { // oper==1 : 1개씩 증가, oper==-1 : 1개씩 감소
+		Iterator<Character> it;
+		if(dir) it = mainString.descendingIterator();
+		else it = mainString.iterator();
+		
+		String substr = "";
+		
+		int len = Math.min(4, mainString.size());
+		
+		for(int i = 0; i < len; i++) {
+			char ch = it.next(); // 이번에 추가될 문자
+			if(dir)
+				substr = ch + substr;
+			else
+				substr = substr + ch;
+			cntSubstr[getIndex(substr)] += oper;
+		}
+	}
+	
+	public void init(char[] mainStr) {
+		mainString = new ArrayDeque<>();
+		dir = true;
+		cntSubstr = new int[550000];
+		
+		for(int i = 0; i < mainStr.length; i++) {
+			char ch = mainStr[i];
+			mainString.addLast(ch);
+			update(1);
+		}
+	}
+	
+	public void pushBack(char[] newStr) {
+		for(int i = 0; i < newStr.length; i++) {
+			char ch = newStr[i];
+			if(dir)
+				mainString.addLast(ch);
+			else
+				mainString.addFirst(ch);
+			update(1);
+		}
+	}
+	
+	public void popBack(int n) {
+		for(int i = 0; i < n; i++) {
+			update(-1);
+			if(dir)
+				mainString.removeLast();
+			else
+				mainString.removeFirst();
+		}
+	}
+	
+	public void reverseStr() {
+		dir = !dir;
+	}
+	
+	public int getCount(char[] subStr) {
+		
+		String subString = "";
+		if(dir)
+			for(int i = 0; i < subStr.length; i++)
+				subString = subString + subStr[i];
+		else
+			for(int i = subStr.length - 1; i >= 0; i--)
+				subString = subString + subStr[i];
+		
+		return cntSubstr[getIndex(subString)]; 
+	}
+}

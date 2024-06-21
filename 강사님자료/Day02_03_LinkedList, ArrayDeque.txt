@@ -1,0 +1,86 @@
+import java.io.*;
+import java.util.*;
+
+class Main
+{
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	
+	public static void main(String[] args) throws Exception
+	{
+		LinkedList<Integer> linked = new LinkedList<>();
+		
+		linked.addFirst(1); // 맨 앞에 data를 추가
+		linked.addLast(1);  // 맨 뒤에 data를 추가
+		linked.addFirst(10); // 맨 앞에 data를 추가
+		linked.addLast(-1);  // 맨 뒤에 data를 추가
+		linked.addFirst(5); // 맨 앞에 data를 추가
+		linked.addLast(7);  // 맨 뒤에 data를 추가
+		
+		int num;
+		num = linked.peekFirst(); // 맨 앞에 있는 data를 확인
+		num = linked.peekLast();  // 맨 뒤에 있는 data를 확인
+		
+		num = linked.removeFirst(); // 맨 앞에 있는 data를 삭제
+		num = linked.removeLast();  // 맨 뒤에 있는 data를 삭제
+		
+		// 중간에 data를 삽입(searching을 한 후 -> insert)
+		linked.add(1, 5);  
+		linked.add(0, 10); 
+		
+		linked.remove(3);
+		
+		// 일반적인 구조에서 java에서는 중간에 data를 추가, 삭제하는데 효율이 좋지 못함
+		
+//		Iterator<Integer> iter; // iterator : 메모장의 cursor라고 생각(지금 내가 어느 data를 '가르키고 있는가')
+//		iter = linked.iterator(); // 한 방향으로만 움직이는 iterator, 다음 index로만     <= next()
+//		iter = linked.descendingIterator(); // 한 방향으로만 움직이는 iterator, 이전 index로만 <= next()
+		
+		ListIterator<Integer> iter;
+		iter = linked.listIterator(); // 양 방향으로 움직이는 iterator <= next(), prev()
+		
+		// 중간에 효율적으로 삽입되는 경우 <- 
+		iter.next();
+		iter.next();
+		iter.next();
+		
+		// O(1)
+		iter.add(9);
+		iter.add(8);
+		iter.add(7);
+		iter.add(6);
+		
+		// O(1)
+		iter.next(); iter.remove();
+		iter.previous(); iter.remove();
+		
+		while(iter.hasNext()) { // iterator.hasNext() : next()가 가능한지
+			num = iter.next(); // 다음 data위치로 가라!
+			System.out.println(num);
+		}
+		
+		
+		//---------------------------------------------------
+		ArrayDeque<Integer> ad = new ArrayDeque<Integer>();
+		ad.addFirst(1);
+		ad.addLast(10);
+		num = ad.peekFirst();
+		num = ad.peekLast();
+		num = ad.removeFirst();
+		num = ad.removeLast();
+
+		ad.addLast(10);
+		ad.addLast(15);
+		ad.addLast(7);
+		ad.addLast(9);
+		ad.addLast(8);
+		
+		Iterator<Integer> it = ad.iterator();
+		while(it.hasNext())
+			System.out.println(it.next());
+		
+		it = ad.descendingIterator();
+		while(it.hasNext())
+			System.out.println(it.next());
+		
+	}
+}

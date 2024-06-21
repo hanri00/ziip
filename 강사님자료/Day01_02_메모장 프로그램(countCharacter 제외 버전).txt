@@ -1,0 +1,71 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution
+{
+	ArrayList<ArrayList<Character>> textbox;
+	int Height, Width;
+	int cursorRow, cursorCol;
+	
+	void init(int H, int W, char mStr[])
+	{
+		Height = H;
+		Width = W;
+		textbox = new ArrayList<>();
+		for(int i = 0; i < Height; i++)
+			textbox.add(new ArrayList<>());
+		cursorRow = cursorCol = 0;
+		
+		
+		
+		for(int i = 0; mStr[i] != '\0'; i++) {
+			textbox.get(i / Width).add(mStr[i]);
+		}
+	}
+	
+	void insert(char mChar)
+	{
+		textbox.get(cursorRow).add(cursorCol, mChar);
+		
+		int nowRow = cursorRow;
+		while(textbox.get(nowRow).size() > Width) {
+			char ch = textbox.get(nowRow).remove(textbox.get(nowRow).size() - 1);
+			nowRow++;
+			textbox.get(nowRow).add(0, ch);
+		}
+		
+		cursorCol++;
+		if(cursorCol >= Width) {
+			cursorCol = 0;
+			cursorRow++;
+		}
+	}
+
+	char moveCursor(int mRow, int mCol)
+	{
+		// 매개변수 : 1~H, 1~W
+		// 실제사용 : 0~H-1, 0~W-1
+		mRow--; mCol--;
+		
+		boolean isOutside = false;
+		if(textbox.get(mRow).size() <= mCol) {
+			isOutside = true;
+			while(mRow > 0 && textbox.get(mRow).size() == 0)
+				mRow--;
+			mCol = textbox.get(mRow).size();
+		} // 밖을 벗어나는 곳인지 확인 => 마지막 줄의 마지막 위치 찾기
+		
+		cursorRow = mRow;
+		cursorCol = mCol;
+		Character ret = '$';
+		if(!isOutside) {
+			ret = textbox.get(cursorRow).get(cursorCol);
+		}
+		return ret;
+	}
+
+	int countCharacter(char mChar)
+	{
+		return 0;
+	}
+}

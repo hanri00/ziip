@@ -1,0 +1,111 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	// node class로 하나의 노드로 관리시 
+	// 너무 많은 new Node() 생성으로 시간초과 발생
+	// -> C++과 다르게 3개의 tree로 나눠서 관리가 효율적
+	// 구간 upate가 없으므로 lazy propagation은 필요하지 않음. 
+	
+	static int[] sumTree; // segement tree
+	static int[] maxTree;
+	static int[] minTree; 
+	// index : streamer id
+	// value : 구독자 수 
+	static int[] subscribers;
+	static int n; 
+	
+	static void initTree(int st, int en, int node, int[] mSubscriber) {
+	    if (st == en) {
+	        subscribers[st] = mSubscriber[st-1];
+	        sumTree[node] = mSubscriber[st-1];
+	        maxTree[node] = mSubscriber[st-1];
+	        minTree[node] = mSubscriber[st-1];
+	        return;
+	    }
+	    int mid = (st + en) / 2;
+	    initTree(st, mid, node * 2, mSubscriber);
+	    initTree(mid + 1, en, node * 2 + 1, mSubscriber);
+	    sumTree[node] = sumTree[node*2] + sumTree[node*2 +1]; 
+	    maxTree[node] = Math.max(maxTree[node*2], maxTree[node*2 +1]); 
+	    minTree[node] = Math.min(minTree[node*2], minTree[node*2 +1]);  
+	    return; 
+	}
+	
+	static int query(int st, int en, int node, int left, int right, int type) {
+	    if (left > en || right < st) {
+	        if(type == 0) return 0; 
+	        if(type == 1) return Integer.MIN_VALUE;
+	        if(type == 2) return Integer.MAX_VALUE; 
+	    }
+	    if (left <= st && right >= en) {
+	    	if(type == 0) return sumTree[node];
+	        if(type == 1) return maxTree[node];
+	        if(type == 2) return minTree[node];
+	    }
+	    int mid = (st + en) / 2;
+		int leftVal = query(st, mid, node * 2, left, right, type); 
+	    int rightVal = query(mid + 1, en, node * 2 + 1, left, right, type); 
+	    int res = 0; 
+	    if(type == 0) res = leftVal + rightVal; 
+        if(type == 1) res = Math.max(leftVal, rightVal);
+        if(type == 2) res = Math.min(leftVal, rightVal);
+        return res; 
+	}
+	
+	static void update(int st, int en, int node, int idx, int val) {
+	    if (idx < st || idx > en)
+	        return; 
+	    if (st == en) {
+	    	sumTree[node] += val;
+	    	minTree[node] += val;
+	    	maxTree[node] += val; 
+	        return;  
+	    }
+	    int mid = (st + en) / 2;
+	    update(st, mid, node * 2, idx, val);
+	    update(mid + 1, en, node * 2 + 1, idx, val);
+	    sumTree[node] = sumTree[node*2] + sumTree[node*2 +1]; 
+	    maxTree[node] = Math.max(maxTree[node*2], maxTree[node*2 +1]); 
+	    minTree[node] = Math.min(minTree[node*2], minTree[node*2 +1]);  
+	    return; 
+	}
+	
+	public void init(int N, int[] mSubscriber) {
+		n = N;
+		sumTree = new int[(N+1)*4];
+		maxTree = new int[(N+1)*4];
+		minTree = new int[(N+1)*4];
+		subscribers = new int[N+1]; 
+		initTree(1, N, 1, mSubscriber);
+	    return;
+	}
+	 
+	// 15,000 x log(200,000) = 105,000 
+	public int subscribe(int mId, int mNum) {
+		update(1, n, 1, mId, mNum); 
+		subscribers[mId] += mNum; 
+	    return subscribers[mId];
+	}
+	 
+	// 15,000 x log(200,000) = 105,000 
+	public int unsubscribe(int mId, int mNum) {
+		update(1, n, 1, mId, -mNum);
+		subscribers[mId] -= mNum; 
+	    return subscribers[mId];
+	}
+	 
+	// 15,000 x log(200,000) = 105,000 
+	public int count(int sId, int eId) {
+		int res = query(1, n, 1, sId, eId, 0);
+	    return res;
+	}
+	
+	// 15,000 x log(200,000) = 105,000 
+	public int calculate(int sId, int eId) {
+		int maxCnt = query(1, n, 1, sId, eId, 1);
+		int minCnt = query(1, n, 1, sId, eId, 2);
+	    return maxCnt - minCnt; 
+	}
+}

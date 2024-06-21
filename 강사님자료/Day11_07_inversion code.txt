@@ -1,0 +1,48 @@
+import java.io.*;
+import java.util.*;
+
+
+public class Main {
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static StringTokenizer st;
+	static int tree[] = new int[4000000];
+	static int N;
+	static int getsum(int st, int ed, int node, int left, int right) {
+		//#1.아예 벗어난 경우
+		if(right<st ||ed<left)return 0;
+		
+		//#2.전부 포함하는 경우
+		if(left<=st && ed <=right)return tree[node];
+		
+		//#3.일부만 포함하는 경우
+		int mid = (st+ed)/2;
+		return getsum(st, mid, node*2, left, right) + getsum(mid+1, ed, node*2+1, left, right);
+	}
+	
+	static int update(int st, int ed, int node, int idx, int val) {
+		//#1. 완전히 벗어났을때
+		if(idx < st || ed < idx)return tree[node];
+		//#2. idx에 도달
+		if(st == ed && st ==idx) {
+			return tree[node] = val;
+		}
+		//#3. 일부만 포함할때
+		int mid =(st+ed)/2;
+		return tree[node] = update(st, mid, node*2, idx, val) + update(mid+1, ed, node*2+1, idx, val);
+	}
+	public static void main(String[] args) throws IOException {
+		/*
+		 * 5
+1 2 3 4 5
+		 */
+		N = Integer.parseInt(br.readLine());
+		st = new StringTokenizer(br.readLine());
+		int cnt=0;
+		for(int i=0; i<N; i++) {
+			int num = Integer.parseInt(st.nextToken());
+			cnt += getsum(1,N,1,num,N);
+			update(1,N, 1, num, 1);
+		}
+		System.out.println(cnt);
+	}
+}

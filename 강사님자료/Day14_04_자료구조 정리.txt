@@ -1,0 +1,58 @@
+Iterable - > iterator 제공, add, get
+
+1. *ArrayList<> : 다봐야 할 때, 입력되는 개수를 잘모를 때, 다 봐도 O(N)
+(LinkedList : java에서 이점 없고, 메모리 많이 잡아먹음...
+유일한 이점 => 맨앞 삽입 삭제 O(1), 그럴거면 ArrayDeque쓰자)
+
+2. *ArrayDeque : Queue<>만들 때 사용
+
+3. *PriorityQueue : 우선순위 '제일 높은애'를(한개 or 여러개) 뽑을 때
+유형 
+#1. pq=> minheap, maxheap만들어서 관리
+(class 만들고, Collections. reversOrder();)
+추천문제 : 승강제 리그, 설국열차
+#2. lazy deletion(특징 :pq안에 있는 객체는 바꾸면 안됨)
+믿을만한 data 관리하면서.. pq에서는 꺼낼 때 확인하고 사용...
+추천문제 : 생산기계(pq + parametric search)
+#3. time stamp로도 많이 출제됨.
+추천문제 : 주차장관리, 박테리아
+ 
+
+ 
+
+Map - > Entry<key, val>들이 모여있는 구조
+=>iterator없음... : iterable밑의 hashset, treeset (Entry<> ent : tm.entryset()) 가능은 하지만 이런거 쓰고 싶어지면 다른 자료구조를 생각해 볼 필요가 있음
+일단 hashmap으로 짜요.... => 나중에 가능하면 배열로 꼭! 바꾸세요
+ 
+
+1. HashMap : DAT (배열) 못쓸때 (배열 인덱스는 음수, string, 10억 못씀....)
+=> get이 많이 느려요. 
+=> 간단한 검색.
+=> key로 String 사용은 지양해야함(id 부여해서 , String => int hashcode만드는것)
+필수 idea 
+#1. 입력된 순서대로 id 부여하기 key(10억) =>idx(1~) 
+#2. hashing (매우 빈출)
+추천문제 : 당근마켓, 숫자조각게임.. **Hashing은 빈출중.. 다른 treemap같은 자료구조는 요새 잘 안나오는 중....
+
+2. TreeMap : 우선순위가 명확,, 이상, 이하 , 초과, 미만... 검색용
+=> self balancing :pq보다 느림
+추천문제 : 성적조회, 호텔추천앱
+ 
+
+ 
+
+**자료구조 주의 할 점
+java의 new 메모리 할당.... =>생각보다 느림....
+
+해결 방안 : 자료구조 비워가면서 사용하기
+전역으로 선언, 할당하고
+static HashMap<> = new HashMAp<>();
+함수 내부에서는 clear()
+void api(){
+hm.clear();
+}
+ 
+
+ 
+
+ 

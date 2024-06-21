@@ -1,0 +1,59 @@
+import java.io.*;
+import java.util.*;
+
+public class Main {
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	
+	static HashMap<String, Integer> nation2id;
+	
+	static int getId(String nation) {
+		if(!nation2id.containsKey(nation)) 
+			nation2id.put(nation, nation2id.size()); //0, 1, 2 .....
+		return nation2id.get(nation);
+	}
+	
+	static int getKey(int id1, int id2) {
+		return Math.min(id1, id2) * 1000 + Math.max(id1, id2);
+	}
+	
+	public static void main(String[] args) throws NumberFormatException, IOException {
+		
+		nation2id = new HashMap<>();
+		
+		HashMap<Integer, Integer> childCnt = new HashMap<>();
+		
+		int N = Integer.parseInt(br.readLine());
+		for(int i = 0; i < N; i++) {
+			StringTokenizer st = new StringTokenizer(br.readLine());
+			int nationCnt = Integer.parseInt(st.nextToken());
+			ArrayList<Integer> nationIdList = new ArrayList<>();
+			for(int j = 0; j < nationCnt; j++) {
+				String nation = st.nextToken();
+				nationIdList.add(getId(nation));
+			}
+			
+			// 모든 두 나라의 조합으로 1명이 추가됐다고 기록
+			for(int idx1 = 0; idx1 < nationCnt; idx1++) {
+				for(int idx2 = idx1 + 1; idx2 < nationCnt; idx2++) {
+					int id1 = nationIdList.get(idx1);
+					int id2 = nationIdList.get(idx2);
+					
+					int key = getKey(id1, id2);
+					if(!childCnt.containsKey(key))
+						childCnt.put(key, 0);
+					childCnt.put(key, childCnt.get(key) + 1);
+				}
+			}
+		}
+		
+		int M = Integer.parseInt(br.readLine());
+		for(int i = 0; i < M; i++) {
+			StringTokenizer st = new StringTokenizer(br.readLine());
+			int key = getKey(getId(st.nextToken()), getId(st.nextToken()));
+			if(childCnt.containsKey(key))
+				System.out.print(childCnt.get(key) + " ");
+			else
+				System.out.print(0 + " ");
+		}
+	}
+}

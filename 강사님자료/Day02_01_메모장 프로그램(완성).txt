@@ -1,0 +1,89 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution
+{
+	ArrayList<ArrayList<Character>> textbox;
+	int Height, Width;
+	int cursorRow, cursorCol;
+	// 줄단위로 어떤 문자가 몇개씩 있는가?
+	int cntAlpha[][]; // [줄 번호][문자] = 해당 줄의 해당 문자가 몇개나 존재하는가?
+	
+	void init(int H, int W, char mStr[])
+	{
+		Height = H;
+		Width = W;
+		textbox = new ArrayList<>();
+		for(int i = 0; i < Height; i++)
+			textbox.add(new ArrayList<>());
+		cursorRow = cursorCol = 0;
+		
+		cntAlpha = new int[Height][256]; // char : 1byte : 2^8
+		
+		for(int i = 0; mStr[i] != '\0'; i++) {
+			textbox.get(i / Width).add(mStr[i]);
+			cntAlpha[i / Width][mStr[i]]++;
+		}
+	}
+	
+	void insert(char mChar)
+	{
+		textbox.get(cursorRow).add(cursorCol, mChar);
+		cntAlpha[cursorRow][mChar]++;
+		
+		int nowRow = cursorRow;
+		while(textbox.get(nowRow).size() > Width) {
+			char ch = textbox.get(nowRow).remove(textbox.get(nowRow).size() - 1);
+			cntAlpha[nowRow][ch]--;
+			nowRow++;
+			cntAlpha[nowRow][ch]++;
+			textbox.get(nowRow).add(0, ch);
+		}
+		
+		cursorCol++;
+		if(cursorCol >= Width) {
+			cursorCol = 0;
+			cursorRow++;
+		}
+	}
+
+	char moveCursor(int mRow, int mCol)
+	{
+		// 매개변수 : 1~H, 1~W
+		// 실제사용 : 0~H-1, 0~W-1
+		mRow--; mCol--;
+		
+		boolean isOutside = false;
+		if(textbox.get(mRow).size() <= mCol) {
+			isOutside = true;
+			while(mRow > 0 && textbox.get(mRow).size() == 0)
+				mRow--;
+			mCol = textbox.get(mRow).size();
+		} // 밖을 벗어나는 곳인지 확인 => 마지막 줄의 마지막 위치 찾기
+		
+		cursorRow = mRow;
+		cursorCol = mCol;
+		Character ret = '$';
+		if(!isOutside) {
+			ret = textbox.get(cursorRow).get(cursorCol);
+		}
+		return ret;
+	}
+
+	int countCharacter(char mChar) // <- ******* 4만번 호출(많아봐야 2500번 안으로 끝내야함)
+	{
+		// 커서가 있는 줄에서 커서 이후의 문자를 counting
+		int ret = 0;
+		for(int col = cursorCol; col < textbox.get(cursorRow).size(); col++) {
+			if(textbox.get(cursorRow).get(col) == mChar)
+				ret++;
+		} // 300
+		
+		for(int row = cursorRow + 1; row < Height; row++) {
+			ret += cntAlpha[row][mChar];			
+		} // 300
+		
+		
+		return ret;
+	}
+}

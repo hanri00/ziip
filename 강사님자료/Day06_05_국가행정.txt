@@ -1,0 +1,100 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	class Road implements Comparable<Road>{
+		int id; // id->id+1 City를 가는 도로
+		int population;
+		int roadCnt;
+		public Road(int id, int population) {
+			super();
+			this.id = id;
+			this.population = population;
+			this.roadCnt = 1;
+		}
+		int getTime() {
+			return population / roadCnt;
+		}
+		int expandRoad() {
+			roadCnt++;
+			return getTime();
+		}
+		@Override
+		public int compareTo(Road right) {
+			int nowTime = getTime();
+			int rightTime = right.getTime();
+			if(nowTime > rightTime) return -1;
+			if(nowTime < rightTime) return 1;
+			if(id < right.id) return -1;
+			if(id > right.id) return 1;
+			return 0;
+		}
+	}
+	
+	Road roads[];
+	PriorityQueue<Road> pq;
+	int cityPopulation[];
+	public void init(int N, int[] mPopulation) {
+		roads = new Road[N];
+		pq = new PriorityQueue<>();
+		cityPopulation = new int[N];
+		for(int i = 0; i < N - 1; i++) {
+			roads[i] = new Road(i, mPopulation[i] + mPopulation[i+1]);
+			pq.add(roads[i]);
+		}
+		for(int i = 0; i < N; i++)
+			cityPopulation[i] = mPopulation[i];
+	    return;
+	}
+	 
+	public int expand(int M) {
+		int ret = 0;
+		for(int i = 0; i < M; i++) {
+			Road now = pq.remove();
+			ret = now.expandRoad();
+			pq.add(now);
+		}
+	    return ret;
+	}
+	 
+	public int calculate(int mFrom, int mTo) {
+		int st = Math.min(mFrom, mTo);
+		int en = Math.max(mFrom, mTo);
+		int ans = 0;
+		for(int i = st; i < en; i++)
+			ans += roads[i].getTime();
+	    return ans;
+	}
+	 
+	public int divide(int mFrom, int mTo, int K) {
+		int left = 0;
+		int right = 1000*10000;
+		int ans = 0;
+		while(left<=right) {
+			int mid = (left + right) / 2;
+			if(test(mid, mFrom, mTo, K)) {
+				right = mid - 1;
+				ans = mid;
+			}
+			else {
+				left = mid + 1;
+			}
+		}
+		
+	    return ans;
+	}
+	
+	public boolean test(int value, int st, int en, int K) {
+		int teamCnt = 1;
+		int teamPopulation = 0;
+		for(int i = st; i <= en; i++) {
+			teamPopulation += cityPopulation[i];
+			if(teamPopulation > value) {
+				teamCnt ++;
+				teamPopulation = cityPopulation[i];
+			}
+		}
+		if(teamCnt <= K) return true;
+		else return false;
+	}
+}

@@ -1,0 +1,51 @@
+import java.io.*;
+import java.util.*;
+
+// string
+
+public class Main {
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static StringTokenizer st;
+	//원본 data
+	static int vals[] = {1,2,3,4,5,6,7,8,9,10};
+	//전처리 하여, 구간들의 합을 구해놓은 segment Tree
+	static int tree[] = new int[40];
+	/*
+	static void init(int st, int ed, int node) {
+		//3. 구간의 시작, 끝 같아질때 까지 : 재귀 활용
+		if(st == ed) {
+			//현재 노드번호에 vals의 원본데이터 저장
+			tree[node] = vals[st];
+			return;
+		}
+		//1. 구간을 반띵으로 나눠요
+		//2. 각각의 노드에 접근(왼쪽 -> 현재노드번호*2, 오른쪽 -> 현재노드번호*2+1)
+		int mid = (st+ed)/2;
+		init(st, mid, node*2);
+		init(mid+1, ed, node*2+1);
+		tree[node] = tree[node*2]+tree[node*2+1];
+	}
+	*/
+	static int init(int st, int ed, int node) {
+		if(st==ed) return tree[node] = vals[st];
+		int mid = (st+ed)/2;
+		return tree[node] = init(st, mid, node*2) + init(mid+1, ed, node*2+1);
+	}
+	
+	
+	static int getsum(int st, int ed, int node, int left, int right) {
+		//1.완전히 벗어난 경우 -> 연산에 영향을 미치지 못하는 값 return
+		if(right < st || ed < left)return 0;
+		//2.완전히 포함하는 경우 -> tree의 해당 node값을 그대로 return
+		if(left <= st && ed <= right)return tree[node];
+		//3.일부만 포함하는 경우 -> 더 나눠서 들어가 봐야함
+		int mid = (st+ed)/2;
+		return getsum(st, mid, node*2, left, right)+getsum(mid+1, ed, node*2+1, left, right);
+	}
+	public static void main(String[] args) throws IOException {
+		init(0, vals.length-1, 1);
+		System.out.println(getsum(0, 9, 1, 0, 4));
+		int d=0;
+		
+	}
+}

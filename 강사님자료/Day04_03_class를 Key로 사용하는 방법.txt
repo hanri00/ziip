@@ -1,0 +1,61 @@
+import java.io.*;
+import java.util.*;
+
+
+/*
+ * pro문제 : 전체 data에서 원하는 data를 빠르게 접근
+ *          1. *분류*
+ *          2. 우선순위에 따라 접근(TreeMap)
+ * 			3. 일부 매칭 - Magic Number : pro보다 expert에서 더 많이 나옴
+ */
+
+public class Main {
+	static class Coord{
+		int row;
+		int col;
+		public Coord(int row, int col) {
+			super();
+			this.row = row;
+			this.col = col;
+		}
+		
+		// 1. source에서 Generate hashCode and equals
+		// 2. hashCode를 고유한 값으로 계산되도록 수정
+		
+		@Override
+		public int hashCode() {
+			// 같은 값이 나오면 같은 값이 반환
+			// row, col이 1~100까지의 수
+			return row * 1000 + col;
+		} // HashFunction
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			Coord other = (Coord) obj;
+			return col == other.col && row == other.row;
+		}
+	}
+	
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static HashMap<Coord, Integer> hm;
+	
+	public static void main(String[] args) throws NumberFormatException, IOException {
+		
+		
+		hm = new HashMap<>();
+		hm.put(new Coord(1, 2), 123);
+		System.out.println(hm.get(new Coord(1, 2)));
+		
+		
+		
+	}
+}
+
+
+

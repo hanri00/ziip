@@ -1,0 +1,130 @@
+알고리즘 
+1. parametric search (10~15%)
++ pq랑 같이 나오기 좋음
++ ~~조합을 찾고 싶다 (Adv. 재귀 +backtracking)
++ (가격)=>mid 중 "최대/ 최소"값  
++ test함수 짜기가 어려움....
+시간복잡도 : api호출횟수 * log 가능한 최대값 * test함수의 시간 복잡도
+test짤 때 : 자료구조 잘 골라야 함...2중 for 3중for 썼으면 반드시 연산 횟수 구해봐야 함
+** 추천문제 : 생산기계, 광물합성(전자상가), 국가행정
+
+
+2. union - find (10~15%)
++ 한번 소속을 합치고 나면 다시 되돌릴 수 없음...
++ 소속을 합치기만.. 합쳤던걸 다시 되돌려라... =>그래프 탐색일지도???
+** 추천문제 : 문명, 자유 무역 협정
+
+ 
+
+3. 그래프 (50%이상) 
+가중치, 무가중치 그래프
+양방향(무방향), 단방향(방향)그래프 
+cycle이 발생하거나, 양방향일 경우 -> visited[] 반드시 필요..!
+
+ 
+
+BFS : 무가중치 그래프, 갈 수 있는 루트가 하나 뿐인 가중치 그래프 (트리 형태의 그래프) 최소 이동 횟수, 최소 비용
+FF : 무가중치 2차원 배열에서 시작 위치를 기준으로 몇 칸 이동하면 최소로 도착 가능한지 ?? 
++ pq랑 섞여 나오기도=> 4방향으로 퍼져나갈 수 있다....
+** 추천문제 : 박테리아 번식(세균번식), Push
+dijk : 가중치 그래프에서 사용, 시작 노드로 부터 모든 노드까지의 최소 비용
+갈수 있는 루트가 여러개.. 비용이 여러개.... 
+pq를 사용하기 때문에 가중치더라도 루트가 단 하나라면 -> BFS보다 느릴 수 밖에.....
+** 추천문제 : 전기차 대여소(던전 탈출), 호텔 방문, 화물 운송
+=>greedy알고리즘 : 제일 좋은걸 맨 먼저 뺄거야!!!
+
+
+ 
+비행기           배
+1000             100
+1000             100
+1000             100
+3000             200
+A     ->     B    ->   C
+
+ 
+
+import java.io.*;
+import java.util.*;
+class Node implements Comparable<Node>{
+	int node;
+	int cost;
+	Node(int node, int cost){
+		this.node = node;
+		this.cost = cost;
+	}
+	public int compareTo(Node o) {
+		if(this.cost< o.cost)return -1;
+		if(this.cost > o.cost)return 1;
+		return 0;
+	}
+}
+
+
+
+public class Main {
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static StringTokenizer st;
+	static int dist[] = new int[3];
+	static ArrayList<Node> al[] = new ArrayList[3];
+	static PriorityQueue<Node> pq = new PriorityQueue<>();
+	static void dijk (int st) {
+		pq.clear();
+		for(int i =0 ; i<3; i++) {
+			dist[i] = Integer.MAX_VALUE;
+		}
+		dist[st] = 0;
+		pq.add(new Node(st, 0));
+		while(!pq.isEmpty()) {
+			// remove => 비어있으면 빨간줄 실행이 멈춤
+			// poll => null을 리턴...
+			Node now = pq.remove();
+			//이미 망한 선택
+			if(dist[now.node] < now.cost)continue;
+			//연결정보 확인
+			for(Node next : al[now.node]) {
+				int nnode = next.node;
+				int ncost = now.cost + next.cost;
+				//dijk, bfs.. 시간복잡도 줄이기 위해서는 pq, q에 최대한 적게 넣어야함
+				if(dist[nnode] <= ncost)continue;
+				//기록하고
+				dist[nnode] = ncost;
+				//pq에 넣기
+				pq.add(new Node(nnode, ncost));
+			}
+		}
+	}
+	public static void main(String[] args) throws IOException {
+/*비행기           배
+ 1000             100
+ 1000             100
+ 1000             100
+ 3000             200
+A  ->     B    ->   C
+		 */
+		for(int i=0; i<3; i++) {
+			al[i] = new ArrayList<>();
+		}
+		al[0].add(new Node(1, 1000));
+		al[0].add(new Node(1, 1000));
+		al[0].add(new Node(1, 1000));
+		al[0].add(new Node(1, 3000));
+		al[1].add(new Node(2, 100));
+		al[1].add(new Node(2, 100));
+		al[1].add(new Node(2, 100));
+		al[1].add(new Node(2, 200));
+	
+		dijk(0);
+		System.out.println(dist[2]);
+	}
+}
+ 
+
+4. segment Tree (10 ~ 15%)
++ 구간의 정보에 대한 질문, 정보 수정.. 
++ 맨 마지막에 하세요 
+추천문제 : 물품보관
+
+ 
+
+ 

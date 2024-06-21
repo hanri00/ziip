@@ -1,0 +1,76 @@
+import java.io.*;
+import java.util.*;
+public class Main {
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	static StringTokenizer st;
+	
+	static int N, T;
+	static int arr[];
+	static int maxIntel;
+	static int sumIntel;
+	
+	static boolean test(int value) {
+		// value'이하'로 팀을 배치했을 때 몇 팀이나 나올 수 있는가? <= T'이하'의 팀이 가능 : true
+		
+		for(int startIndex = 0; startIndex < N; startIndex++) {
+			// 팀을 꾸리기 시작할 index 선택
+			
+			int teamCnt = 1; // 팀 수
+			int teamIntel = 0; // 팀 지능
+			for(int index = startIndex; index < startIndex + N; index++) {
+				teamIntel += arr[index]; // index 사람을 teamCnt번 팀에 합류
+				if(teamIntel > value) { // 팀 지능이 한계선인 value를 넘어가면 '새로 팀'을 꾸림
+					teamCnt += 1; // 팀 번호를 증가
+					teamIntel = arr[index]; // index사람만 팀에 합류
+				}
+			}
+			
+			if(teamCnt <= T) return true; // 배치하고 보니 T이하로 가능!!!!!
+		}
+		
+		return false; // 모슨 사람을 시작점으로 다 돌아봤는데 안되더라..... false!!!!!!
+		
+	}
+	
+	static int ps() {
+		// left~right : 팀을 나눌 때 갖을 수 있는 최대 팀지능 합
+		int left = maxIntel;
+		int right = sumIntel;
+		int ans = 0;
+		while(left <= right) {
+			int mid = (left + right) / 2;
+			if(test(mid)) {
+				// test(mid) : mid라는 팀 지능을 기반으로 팀을 나눠서 T개의 팀을 나눌 수 있는가?
+				//			   T개의 팀'이하' => T개의 팀보다 좀 더 잘게 잘라도 된다 : 팀 지능을 낮춰도 됨
+				right = mid - 1;
+				ans = mid;
+			}
+			else {
+				// 			   T개의 팀'초과' => T개의 팀보다 좀 더 뭉처서 잘라야 한다 : 팀 지능을 높여야 됨
+				left = mid + 1;
+			}
+		}
+		
+		return ans;
+	}
+	
+	public static void main(String[] args) throws NumberFormatException, IOException {
+		st = new StringTokenizer(br.readLine());
+		N = Integer.parseInt(st.nextToken());
+		T = Integer.parseInt(st.nextToken());
+		arr = new int[N * 2];
+		st = new StringTokenizer(br.readLine());
+		maxIntel = 0;
+		sumIntel = 0;
+		for(int i = 0; i < N; i++) {
+			arr[i] = Integer.parseInt(st.nextToken());
+			arr[i + N] = arr[i]; // 뒤에도 똑같은 data를 복사(rotation 처리를 위해)
+			maxIntel = Math.max(maxIntel, arr[i]);
+			sumIntel += arr[i];
+		}
+		
+		System.out.println(ps());
+		
+	}
+	
+}

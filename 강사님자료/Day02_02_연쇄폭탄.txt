@@ -1,0 +1,57 @@
+import java.io.*;
+import java.util.*;
+
+class Main
+{
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	
+	static class Coord{
+		int row, col;
+		// source -> generate constructor using fields
+		public Coord(int row, int col) {
+			super();
+			this.row = row;
+			this.col = col;
+		}
+	}
+	
+	public static void main(String[] args) throws Exception
+	{
+		int N = Integer.parseInt(br.readLine());
+		int MAP[][] = new int[N][N];
+		Coord coords[] = new Coord[N*N + 1]; // 1~N*N초까지
+		
+		for(int row = 0; row < N; row++) {
+			StringTokenizer st = new StringTokenizer(br.readLine());
+			for(int col = 0; col < N; col++) {
+				MAP[row][col] = Integer.parseInt(st.nextToken());
+				coords[MAP[row][col]] = new Coord(row, col);
+			}
+		}
+		
+		int ans = 0;
+		for(int sec = 1; sec <= N*N; sec++) {
+			Coord bomb = coords[sec];
+			
+			if(MAP[bomb.row][bomb.col] == 0) continue; // 이미 터진 폭탄이면 무시
+			
+			ans = sec;
+			
+			int dr[] = {-1,1,0,0,0};
+			int dc[] = {0,0,-1,1,0};
+			
+			for(int i = 0; i < 5; i++) {
+				int nr = bomb.row + dr[i];
+				int nc = bomb.col + dc[i];
+				
+				if(nr < 0 || nc < 0) continue;
+				if(nr >= N || nc >= N) continue;
+				
+				MAP[nr][nc] = 0;
+			}
+		}
+		
+		System.out.println(ans + "초");
+		
+	}
+}

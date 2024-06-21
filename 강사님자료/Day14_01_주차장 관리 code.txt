@@ -1,0 +1,141 @@
+import java.io.*;
+import java.util.*; 
+
+class UserSolution {
+	
+	static class Car implements Comparable <Car>{ 
+		int inTime; // waiting start time
+		int num; // car num;
+		int time; // totalWait - totalTime - (currently waiting time)
+		Car(int inTime, int num, int time) {
+			this.inTime = inTime;
+			this.num = num;
+			this.time = time; 
+		}
+		@Override
+		public int compareTo(Car o) {
+			// time first
+			if(time > o.time) return -1;
+			if(time < o.time) return 1;
+			// inTime second
+			if(inTime < o.inTime) return -1;
+			if(inTime > o.inTime) return 1;
+			return 0; 
+		}
+	}
+	
+	static int bt; // base time 
+	static int bf; // base fee
+	static int ut; // unit time 
+	static int uf; // unit fee
+	static int capacity; // capacity
+	
+	// key : carnum;
+	// value : id
+	static HashMap<Integer, Integer>hm;
+	static int waitCnt; // # of waiting cars
+	static int parkCnt; // # of parked cars 
+	
+	static PriorityQueue<Car>pq; // totalWait - totalPark
+	static int idNum; // car ID numbering
+	
+	static int[] state; // car's state (0 = waiting, 1 = park, -1 = not here)
+	static int[] time;
+	static int[] totalParkTime; 
+	static int[] totalWaitTime; 
+	
+	public void init(int mBaseTime, int mBaseFee, int mUnitTime, int mUnitFee, int mCapacity) {
+		bt = mBaseTime;
+		bf = mBaseFee;
+		ut = mUnitTime;
+		uf = mUnitFee;
+		capacity = mCapacity; 
+		
+		hm = new HashMap<>();
+		pq = new PriorityQueue<>(); 
+		waitCnt = 0;
+		parkCnt = 0; 
+		idNum = 1; 
+		
+		// arrive call count = 70,000
+		int MAX = 70000; 
+		state = new int[MAX+1]; 
+		time = new int[MAX+1]; 
+		totalParkTime = new int[MAX+1]; 
+		totalWaitTime = new int[MAX+1]; 
+		return;
+	}
+
+	public int arrive(int mTime, int mCar) {
+		// if new car
+		if(hm.get(mCar) == null) {
+			//register
+			hm.put(mCar, idNum);
+			totalWaitTime[idNum] = 0;
+			totalParkTime[idNum] = 0;
+			state[idNum] = -1; 
+			idNum++;
+		}
+		
+		int id = hm.get(mCar); 
+		time[id] = mTime; // car arrives at this time. 
+		
+		// if parking available 
+		if(parkCnt < capacity) {
+			state[id] = 1; // parked state
+			parkCnt++; 
+		}
+		// if not => waiting 
+		else {
+			state[id] = 0;
+			waitCnt++; 
+			// register to waitinglist
+			int timeStamp = totalWaitTime[id] - totalParkTime[id] - mTime; 
+			pq.add(new Car(time[id], id, timeStamp));
+		}
+		return waitCnt;
+	}
+
+	public int leave(int mTime, int mCar) {
+		
+		int id = hm.get(mCar); 
+		int duration = mTime - time[id]; // car has been parked/waiting for this duration
+		
+		// if this car was waiting -> just leave
+		if(state[id] == 0) {
+			totalWaitTime[id] += duration;
+			state[id] = -1;
+			waitCnt--;
+			return -1; 
+		}
+		
+		// else : 
+		// #1. parked car leaves 
+		totalParkTime[id] += duration; 
+		state[id] = -1;
+		parkCnt--; 
+		
+		// #2. car with highest priority in waiting list will park 
+		while(!pq.isEmpty()) {
+			Car now = pq.remove();
+			// if this car is NOT waiting, skip 
+			if(state[now.num] != 0)
+				continue; 
+			// if this car did NOT enter at inTime
+			if(time[now.num] != now.inTime)
+				continue;
+			// now, this car can park!
+			state[now.num] = 1; 
+			waitCnt--;
+			parkCnt++;
+			time[now.num] = mTime;
+			totalWaitTime[now.num] += mTime - now.inTime;
+			break; 
+		}
+		
+		// finally, leaving car has to pay up
+		if(duration <= bt)
+			return bf; 
+		return bf + (int)Math.ceil((double)(duration-bt)/ut) * uf;
+	}
+}

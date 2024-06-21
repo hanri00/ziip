@@ -1,0 +1,90 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	static class Edge implements Comparable <Edge>{
+		int to;
+		int cost; 
+		Edge(int to, int cost) {
+			this.to = to;
+			this.cost = cost; 
+		}
+		@Override
+		public int compareTo(Edge o) {
+			if(cost > o.cost) return -1;
+			if(cost < o.cost) return 1;
+			return 0; 
+		}
+	}
+	
+	static ArrayList<Edge>[] al; 
+	static int[] dist; 
+	static int[] visited; 
+	static int n; 
+	static int c; 
+	
+	public void init(int N, int K, int[] sCity, int[] eCity, int[] mLimit) {
+		al = new ArrayList[N];
+		for(int i = 0; i < N; i++)
+			al[i] = new ArrayList<>();
+		
+		for(int i = 0; i < K; i++) {
+			int from = sCity[i];
+			int to = eCity[i];
+			int cost = mLimit[i];
+			// 단방향 연결
+			al[from].add(new Edge(to, cost)); 
+		}
+		dist = new int[N];
+		visited = new int[N];
+		n = N; 
+		c = 0; 
+		return;
+	}
+
+	// 2,000 x O(1)
+	public void add(int sCity, int eCity, int mLimit) {
+		al[sCity].add(new Edge(eCity, mLimit)); 
+		return; 
+	}
+
+	// 최대 Edge 개수 : init(4,000) + add call count (2,000)
+	// 300 x O(6,000 log 6,000) = 약 23,000,000
+	// 더 많은 길을 거쳐갈수록 더 중량이 늘어날일은 없다
+	// 즉, 탐욕적으로 가중치가 큰 길로 선택해서 가는 길 중 
+	// 가장 [작았던] cost 가 해당 도시까지의 최대 중량이 된다.
+	// ** 정확하게는 MST의 prim logic에 더 가깝다.
+	public int calculate(int sCity, int eCity) {
+		c++; 
+		// dist init
+		for(int i = 0; i < n; i++) 
+			dist[i] = 0; 
+		dist[sCity] = Integer.MAX_VALUE;
+		
+		// pq init
+		PriorityQueue<Edge>pq = new PriorityQueue<>();
+		pq.add(new Edge(sCity, Integer.MAX_VALUE));
+		
+		// Dijkstra logic -> 단, 가장 cost가 높은것을 따라간다. 
+		while(!pq.isEmpty()) {
+			Edge now = pq.remove(); 
+			
+			if(dist[now.to] > now.cost)
+				continue;
+			
+			// 도착했다면 -> 더 볼 필요 X 
+			if(now.to == eCity) 
+				return dist[eCity];
+			
+			for(Edge next : al[now.to]) {
+				int nc = Math.min(now.cost, next.cost); 
+				if(dist[next.to] >= nc)
+					continue;
+				dist[next.to] = nc; 
+				pq.add(new Edge(next.to, nc)); 
+			}
+		}
+		return -1;
+	}
+}

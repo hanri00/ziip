@@ -1,0 +1,32 @@
+1. 아파트 주민 1명 select <- 모든 주민에 대하여 <- 1000^2
+   2. blacklist에서 해당 주민이 있는지 확인         <- 1000^2
+
+
+1000^4 = 1조번
+JAVA에서는 반복횟수로 시간을 예상하기 힘듦
+C++의 시간을 보시면 좋음 <-
+1초 => 1억번반복까진 안전
+
+1. 완전히 설계를 처음부터
+2. 설계에서 일부의 효율을 개선
+
+for(int apart_row)            <- 1000
+    for(int apart_col)         <- 1000
+         int num = apart[apart_row][apart_col]
+         for(int black_row)   <- 1000
+             for(int black_col)<- 1000
+                  if(num == black[black_row][black_col])
+                        블랙리스트이다!!!!!
+
+
+
+1. 아파트 주민 1명 select <- 모든 주민에 대하여 <- 1000^2
+   2. blacklist에서 해당 주민이 있는지 확인         <- 1
+      -> 모든 명단을 확인 => 미리 사전에 어느정도 정리
+      black[좌표][좌표]
+      주민번호 => 블랙리스트인가?
+      => is_black[주민번호]=블랙리스트 여부
+
+      DAT : Direct Access Table => 배열의 index에 의미를 부여
+
+실제 pro에서 엄청 많이 쓰는 기법

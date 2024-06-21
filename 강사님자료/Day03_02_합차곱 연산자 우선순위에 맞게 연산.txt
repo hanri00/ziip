@@ -1,0 +1,51 @@
+using LL = long long;
+const int LM = 50;
+const int MOD = 100000000;
+
+
+Bigint numStk[LM];
+char form[10000], opStk[LM];
+int numCnt, opCnt;
+
+void calc() {
+	char sign = opStk[opCnt];
+	if (sign == '+') numStk[numCnt - 1].add(numStk[numCnt]);
+	else if (sign == '-') numStk[numCnt - 1].sub(numStk[numCnt]);
+	else if (sign == '*') numStk[numCnt - 1].multi(numStk[numCnt]);
+	else return;   // '('
+	opCnt--, numCnt--;
+}
+
+void test(char form[10000], char result[10000])
+{
+	numCnt = opCnt = 0;
+	int i, d;
+	for (i = 0; form[i]; ++i) {
+		if (form[i] >= '0' && form[i] <= '9') {
+			d = 0;
+			while (form[i] >= '0' && form[i] <= '9') {
+				d = d * 10 + form[i] - '0';
+				i++;
+			}
+			numStk[++numCnt].push(d);
+			if (opStk[opCnt] == '*' || opStk[opCnt] == '/')
+				calc();
+		}
+		else {
+			if (form[i] == '+' || form[i] == '-') {
+				if (numCnt > 1) calc();
+				opStk[++opCnt] = form[i];
+			}
+			else if (form[i] == ')') {
+				calc();
+				opCnt--;
+				if (opStk[opCnt] == '*' ||
+					opStk[opCnt] == '/') calc();
+			}
+			else opStk[++opCnt] = form[i];  // '(*/'
+			i++;
+		}
+	}
+	if (numCnt > 1) calc();
+	numStk[1].toChar(result);
+}

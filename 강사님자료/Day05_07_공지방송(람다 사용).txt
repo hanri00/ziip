@@ -1,0 +1,82 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	class Reg implements Comparable<Reg>{
+		int start, end;
+		int id;
+		Reg(int start, int end, int id) {
+			this.start = start;
+			this.end = end;
+			this.id = id;
+		}
+		@Override
+		public int compareTo(UserSolution.Reg o) {
+			// TODO Auto-generated method stub
+			if(start < o.start) return -1;
+			if(start > o.start) return 1;
+			
+			if(end < o.end) return -1;
+			if(end > o.end) return 1;
+			
+			if(id < o.id) return -1;
+			if(id > o.id) return 1;
+			
+			return 0;
+		}
+	}
+	
+	TreeMap<Reg, Boolean> schedules;
+	HashMap<Integer, Reg> id2schedule;
+	
+    public void init() {
+    	schedules = new TreeMap<>();
+    	id2schedule = new HashMap<>();
+    }
+
+    public int add(int mId, int mStart, int mEnd) {
+    	remove(mId);
+    	Reg reg = new Reg(mStart, mEnd, mId);
+    	schedules.put(reg, null);
+    	id2schedule.put(mId, reg);
+        return schedules.size();
+    }
+
+    public int remove(int mId) {
+    	if(id2schedule.containsKey(mId))
+    	{
+    		Reg prev = id2schedule.get(mId);
+    		schedules.remove(prev);
+    	}
+        return schedules.size();
+    }
+
+    int announce(int mDuration, int M) {
+    	int prevTime = -1;
+    	boolean isValid = false;
+    	PriorityQueue<Reg> validPrevSchedule = new PriorityQueue<>((left, right) -> (left.end - right.end));
+    	for(Map.Entry<Reg, Boolean> element : schedules.entrySet()) {
+    		Reg reg = element.getKey();
+    		validPrevSchedule.add(reg);
+    		while(!validPrevSchedule.isEmpty() && reg.start + mDuration - 1> validPrevSchedule.peek().end) {
+    			validPrevSchedule.remove();
+    		}
+    		if(validPrevSchedule.size() >= M) {
+    			isValid = true;
+    			break;
+    		}
+    	}
+		if (isValid) {
+			Reg limitReg = validPrevSchedule.peek();
+	    	int FirstEnd = limitReg.end;
+	    	int lastStart = 0;
+			while (!validPrevSchedule.isEmpty())
+			{
+				Reg reg = validPrevSchedule.remove();
+				lastStart = Math.max(reg.start, lastStart);
+			}
+			return Math.min(lastStart, FirstEnd - mDuration + 1);
+		}
+		else return -1;
+    }
+}

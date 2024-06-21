@@ -1,0 +1,71 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
+public class Main {
+    static int N, M;
+    static int[] arr;
+    static long[] seg;
+
+    static long makeSeg(int index, int s, int e) {
+        if (s == e) return seg[index] = arr[s];
+        int mid = (s + e) / 2;
+        long a = makeSeg(index * 2 + 0, s, mid);
+        long b = makeSeg(index * 2 + 1, mid + 1, e);
+        return seg[index] = a + b;
+    }
+
+    static long getSum(int index, int s, int e, int tarS, int tarE) {
+        if (tarS <= s && e <= tarE) return seg[index];
+        if (e < tarS || tarE < s) return 0;
+        int mid = (s + e) / 2;
+        long a = getSum(index * 2 + 0, s, mid, tarS, tarE);
+        long b = getSum(index * 2 + 1, mid + 1, e, tarS, tarE);
+        return a + b;
+    }
+
+    static long setUpdate(int index, int s, int e, int a, int b) {
+        if (!(s <= a && a <= e)) return seg[index];
+        if (s == e) {
+            arr[a] = b;
+            return seg[index] = b;
+        }
+        int mid = (s + e) / 2;
+        long t1 = setUpdate(index * 2 + 0, s, mid, a, b);
+        long t2 = setUpdate(index * 2 + 1, mid + 1, e, a, b);
+        return seg[index] = t1 + t2;
+    }
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
+
+        N = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+
+        arr = new int[N];
+        seg = new long[4 * N]; // segment tree의 크기는 원본 배열의 4배로 구성
+
+        st = new StringTokenizer(br.readLine());
+        for (int i = 0; i < N; i++) {
+            arr[i] = Integer.parseInt(st.nextToken());
+        }
+
+        makeSeg(1, 0, N - 1);
+
+        for (int i = 0; i < M; i++) {
+            st = new StringTokenizer(br.readLine());
+            int cmd = Integer.parseInt(st.nextToken());
+            int a = Integer.parseInt(st.nextToken()) - 1;
+            int b = Integer.parseInt(st.nextToken());
+
+            if (cmd == 1) {
+                setUpdate(1, 0, N - 1, a, b);
+            }
+            if (cmd == 2) {
+                System.out.println(getSum(1, 0, N - 1, a, b - 1));
+            }
+        }
+    }
+}

@@ -1,0 +1,136 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	static class Node {
+		int num;
+		int cost;
+		Node(int num, int cost) {
+			this.num = num;
+			this.cost = cost; 
+		}
+	}
+	
+	// key : device ID (1~1,000,000,000)
+	// value : mapped ID (1~N)
+	static HashMap<Integer, Integer>hm;
+	static int idNum; 
+	
+	// graph (adj list)
+	static ArrayList<Node>[] al; 
+	
+	public void init(int mDevice) {
+		hm = new HashMap<>();
+		idNum = 1; 
+		hm.put(mDevice, idNum);
+		idNum++; 
+		
+		// connect call count = 10,000
+		al = new ArrayList[10001];
+		for(int i = 0; i <= 10000; i++)
+			al[i] = new ArrayList<>(); 
+	    return;
+	}
+	 
+	public void connect(int mOldDevice, int mNewDevice, int mLatency) {
+		// register new Device
+		hm.put(mNewDevice, idNum);
+		idNum++; 
+		
+		// connect to graph (undirected)
+		int from = hm.get(mOldDevice);
+		int to = hm.get(mNewDevice);
+		
+		al[from].add(new Node(to, mLatency));
+		al[to].add(new Node(from, mLatency)); 
+	    return;
+	}
+	 
+	public int measure(int mDevice1, int mDevice2) {
+		// simple BFS 
+		int start = hm.get(mDevice1); 
+		int dest = hm.get(mDevice2); // guaranteed to exist
+		
+		ArrayDeque<Node>q = new ArrayDeque<>();
+		q.add(new Node(start, 0)); 
+		
+		int[] visited = new int[idNum+1];
+		visited[start] = 1;
+		
+		int res = -1;  
+		
+		while(!q.isEmpty()) {
+			Node now = q.remove();
+			
+			if(now.num == dest) {
+				res = now.cost;
+				break; 
+			}
+			
+			for(int i = 0; i < al[now.num].size(); i++) {
+				Node next = al[now.num].get(i);
+				if(visited[next.num] == 1)
+					continue;
+				visited[next.num] = 1;
+				q.add(new Node(next.num, now.cost + next.cost));
+			}
+		}
+	    return res;
+	}
+	 
+	public int test(int mDevice) {
+		// simple BFS from mDevice's adjacent Nodes
+		// and find TWO longest paths
+		
+		int start = hm.get(mDevice);
+		
+		ArrayDeque<Node>q; 
+		int[] visited = new int[idNum+1]; 
+		visited[start] = 1; 
+		
+		int routeA = 0; // longest route
+		int routeB = 0; // second longest route
+		
+		for(int i = 0; i < al[start].size(); i++) {
+			Node adj = al[start].get(i); 
+			// bfs from here
+			q = new ArrayDeque<>(); 
+			q.add(new Node(adj.num, 0));
+			visited[adj.num] = 1; 
+			
+			int maxCost = Integer.MIN_VALUE; 
+			
+			while(!q.isEmpty()) {
+				Node now = q.remove();
+				
+				if(now.cost > maxCost)
+					maxCost = now.cost; 
+				
+				for(int j = 0; j < al[now.num].size(); j++) {
+					Node next = al[now.num].get(j);
+					if(visited[next.num] == 1)
+						continue; 
+					visited[next.num] = 1;
+					q.add(new Node(next.num, now.cost + next.cost));
+				}
+			}
+			
+			// end of BFS -> found the maxCost of this route
+			int totalCost = maxCost + adj.cost; // start -> adj -> furthest
+			
+			// if this is the longest -> swap 
+			if(totalCost > routeA) {
+				routeB = routeA;
+				routeA = totalCost;
+			}
+			// if second longest, swap
+			else if(totalCost > routeB) {
+				routeB = totalCost; 
+			}
+		}
+		
+		// A <- start -> B 
+	    return routeA + routeB;
+	}
+}

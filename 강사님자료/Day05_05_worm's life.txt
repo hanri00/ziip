@@ -1,0 +1,76 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	class Worm implements Comparable <Worm>{
+		int id;
+		int life;
+		Worm(int id, int life) {
+			this.id = id;
+			this.life = life; 
+		}
+		@Override
+		public int compareTo(Worm o) {
+			if(this.life < o.life) return -1;
+			if(this.life > o.life) return 1;
+			if(this.id < o.id) return -1;
+			if(this.id > o.id) return 1;
+			return 0; 
+		}
+	}
+	
+	int[] dat;
+	
+	int curYear;
+	
+	PriorityQueue<Worm>pq;
+	
+	int cnt;
+	
+	public void init() {
+		dat = new int[100001];
+		curYear = 0;
+		pq = new PriorityQueue<>(); 
+		cnt = 0; 
+	}
+	
+	public void add(int id, int life) {
+		if(dat[id] != 0)
+			return;
+		dat[id] = life + curYear;
+		pq.add(new Worm(id, life + curYear)); 
+		cnt++;
+	}
+
+	public int span(int year) {
+		curYear += year; 
+		
+		while(!pq.isEmpty()) {
+			Worm now = pq.peek();
+			if(now.life > curYear)
+				break; 
+			pq.remove(); 
+			if(dat[now.id] != now.life)
+				continue; 
+				
+			cnt--; 
+			dat[now.id] = 0; 
+		}
+		return cnt; 
+	}
+
+	public int getLife(int id) {
+		if(dat[id] == 0)
+			return -1;
+		return dat[id] - curYear; 
+	}
+  
+  	public int addLife(int id, int life) {
+  		if(dat[id] == 0)
+  			return -1;
+  		dat[id] += life; 
+  		pq.add(new Worm(id, dat[id]));
+  		return dat[id] - curYear; 
+    }
+}

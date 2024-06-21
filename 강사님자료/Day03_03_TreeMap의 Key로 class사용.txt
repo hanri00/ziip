@@ -1,0 +1,59 @@
+import java.io.*;
+import java.util.*;
+
+public class Main {
+	// treemap의 내부 구조
+	// treemap의 key로 비교할 data가 2개 이상
+	
+	// 일정 관리 <- 사람 여럿명
+	// 강의 일정
+	// (시작일자, 끝나는 일자, 어떤 사람?)
+	static class Schedule implements Comparable<Schedule>{
+		int stDay;
+		int enDay;
+		int who;
+		public Schedule(int stDay, int enDay, int who) {
+			super();
+			this.stDay = stDay;
+			this.enDay = enDay;
+			this.who = who;
+		}
+		
+		@Override
+		// 나랑 내 바로 오른쪽의 애랑 비교
+		public int compareTo(Main.Schedule right) {
+			// 1. 시작 일자가 빠른 순
+			if(stDay < right.stDay) return -1;
+			if(stDay > right.stDay) return 1;
+			// 2. 끝나는 일자가 빠른 순
+			if(enDay < right.enDay) return -1;
+			if(enDay > right.enDay) return 1;
+			
+			// 같다!!!!!
+			if(who < right.who) return -1;
+			if(who > right.who) return 1;
+			return 0;
+		}
+		// 왠만하면 디버깅할때만 사용하시는걸 권장
+		@Override
+		public String toString() {
+			return "[" + stDay + ", " + enDay + ", " + who + "]";
+		}
+	}
+	
+	public static void main(String[] args) {
+		TreeMap<Schedule, Integer> tm = new TreeMap<>();
+		tm.put(new Schedule(1, 5, 1), 1);
+		tm.put(new Schedule(6, 10, 2), 2);
+		tm.put(new Schedule(3, 7, 3), 3);
+		tm.put(new Schedule(1, 5, 4), 1);
+		
+		int de = 1;
+		
+		Schedule a = new Schedule(1, 5, 1);
+		System.out.println(a);
+		
+		
+	}
+
+}

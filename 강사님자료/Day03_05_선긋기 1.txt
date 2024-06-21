@@ -1,0 +1,53 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution
+{
+	TreeMap<Integer, Integer> ladder[];
+	public void init()
+	{
+		ladder = new TreeMap[101];
+		for(int i = 0; i < 101; i++)
+			ladder[i] = new TreeMap<>();
+	}
+	
+	public void add(int x, int y)
+	{
+		ladder[x].put(y, x+1);
+		ladder[x+1].put(y, x);
+	}
+    
+	public int getCrossCnt(int lineID)
+	{
+		int nowX = lineID;
+		int nowY = 0;
+		int ret = 0;
+		while(true) {
+			Map.Entry<Integer, Integer> nxt = ladder[nowX].higherEntry(nowY);
+			if(nxt == null) break;
+			nowY = nxt.getKey();
+			nowX = nxt.getValue();
+			ret += 1;
+		}
+		return ret; 
+	}
+
+	public int getID(int x, int y)
+	{
+		int nowX = x;
+		int nowY = y;
+		while(true) {
+			Map.Entry<Integer, Integer> nxt = ladder[nowX].lowerEntry(nowY);
+			if(nxt == null) break;
+			nowY = nxt.getKey();
+			nowX = nxt.getValue();
+		}
+		return nowX; 
+	}
+	
+	public void remove(int x, int y)
+	{
+		ladder[x].remove(y);
+		ladder[x+1].remove(y);
+	}
+}

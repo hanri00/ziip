@@ -1,0 +1,101 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	static int cid_cnt, tag_cnt;
+	
+	static HashMap<String, Integer> tag2Id;
+	static HashMap<Integer, ArrayList<Integer >> ThreeTags;
+	static HashMap<Integer, ArrayList<Integer>> OneTags;
+	
+	static int priceList[];
+	static boolean isSell[];
+	
+	static int getThreeTagKey(int a, int b, int c) {
+		TreeMap<Integer, Integer> tm = new TreeMap<>();
+		tm.put(a, a);
+		tm.put(b, b);
+		tm.put(c, c);
+		int ret = 0;
+		for(int num : tm.keySet())
+			ret = ret * 100 + num;
+		return ret;
+	}
+	
+	static int getTagId(String tag) {
+		if(!tag2Id.containsKey(tag))
+			tag2Id.put(tag, tag_cnt++);
+		return tag2Id.get(tag);
+	}
+	
+	public void init(int N) {
+		cid_cnt = tag_cnt = 0;
+		tag2Id = new HashMap<>();
+		ThreeTags = new HashMap<>();
+		OneTags = new HashMap<>();
+		priceList = new int[30001];
+		isSell = new boolean[30001];
+	}
+
+	public void addCarrot(int price, int tagCnt, String tagName[]) {
+		int cid = cid_cnt++;
+		
+		priceList[cid] = price;
+		isSell[cid] = false;
+		
+		ArrayList<Integer> tags = new ArrayList<>();
+		for(int i = 0; i < tagCnt; i++)
+			tags.add(getTagId(tagName[i]));
+		
+		for(int tag : tags)
+		{
+			if(!OneTags.containsKey(tag))
+				OneTags.put(tag, new ArrayList<>());
+			OneTags.get(tag).add(cid);
+		}
+		
+		for(int i = 0; i < tagCnt; i++)
+			for(int j = i + 1; j < tagCnt; j++)
+				for(int k = j + 1; k < tagCnt; k++)
+				{
+					int a = tags.get(i);
+					int b = tags.get(j);
+					int c = tags.get(k);
+					
+					int key = getThreeTagKey(a, b, c);
+					if(!ThreeTags.containsKey(key))
+						ThreeTags.put(key, new ArrayList<>());
+					ThreeTags.get(key).add(cid);
+				}
+	}
+
+	public int sellCarrot(String tag1, String tag2, String tag3) {
+		int key = getThreeTagKey(
+				getTagId(tag1), getTagId(tag2), getTagId(tag3));
+		ArrayList<Integer> cidList = ThreeTags.get(key);
+		if(cidList == null)
+			return -1;
+		int minPrice = Integer.MAX_VALUE;
+		int minCid = -1;
+		for(int cid : cidList) {
+			if(isSell[cid])
+				continue;
+			if(minPrice > priceList[cid]) {
+				minPrice = priceList[cid];
+				minCid = cid;
+			}
+		}
+		if(minCid == -1)
+			return -1;
+		isSell[minCid] = true;
+		return minPrice;
+	}
+
+	public void updatePrice(String tag1, int addPrice) {
+		int key = tag2Id.get(tag1);
+		ArrayList<Integer> cidList = OneTags.get(key);
+		for(int cid : cidList)
+			priceList[cid] += addPrice;
+	}
+}

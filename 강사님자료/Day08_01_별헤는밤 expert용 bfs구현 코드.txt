@@ -1,0 +1,91 @@
+#include<iostream>
+using namespace std;
+
+const int BUFFERSIZE = 1000000;
+const int SIZE = 100000;
+
+int bcnt;
+
+struct Edge {
+	int toNode;
+	Edge* next;
+	Edge* alloc(int toNode, Edge* p) {
+		this->toNode = toNode, next = p;
+		return this;
+	}
+}buf[BUFFERSIZE], *nodes[SIZE];
+
+void add(int fromNode,int toNode) { // fromNode -> toNodeNum로 가는 edge추가
+	nodes[fromNode] = buf[bcnt].alloc(toNode, nodes[fromNode]);
+	bcnt++;
+}
+
+int getNextNodes(int nodeNumm, Edge nodeDests[]) { // nodeDests : nextnode들을 저장, return : nextnode의 수
+	int index = 0;
+	Edge* p = nodes[nodeNumm];
+	while (p) {
+		nodeDests[index] = *p;
+		p = p->next;
+		index++;
+	}
+	return index;
+}
+// 인접리스트
+
+
+
+template<typename T>
+struct Queue {
+	T qbuf[BUFFERSIZE];
+	int f, r;
+	bool empty() { return f == r; }
+	int size() { return r - f; }
+	void push(T value) { qbuf[r] = value; r++; }
+	T front() {
+		if (empty()) return -2134567890; 
+		return qbuf[f]; 
+	};
+	void pop() {
+		if (empty()) return;
+		f++;
+	}
+};
+// Queue
+
+
+Queue<int> q;
+Edge nxtNodes[SIZE];
+bool visited[SIZE];
+
+void bfs(int st) {
+	q.push(st);
+	while (!q.empty()) {
+		int now = q.front(); q.pop();
+		int nxtSize = getNextNodes(now, nxtNodes);
+		for (int i = 0; i < nxtSize; i++) {
+			Edge& nxt = nxtNodes[i];
+			if (visited[nxt.toNode]) continue;
+			visited[nxt.toNode] = true;
+			q.push(nxt.toNode);
+		}
+	}
+}
+
+int main() {
+	int N, T; 
+	cin >> N >> T;
+	for (int i = 0; i < T; i++) {
+		int f, t;
+		cin >> f >> t;
+		add(f, t);
+		add(t, f);
+	}
+	int ans = 0;
+	for (int i = 1; i <= N; i++) {
+		if (!visited[i]) {
+			bfs(i);
+			ans++;
+		}
+	}
+	cout << ans;
+}

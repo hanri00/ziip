@@ -1,0 +1,63 @@
+import java.io.*;
+import java.util.*;
+
+class Solution {
+	private final static int MAXN = 50000;
+	private final static int WORD_MAXLEN = 11; 
+
+	ArrayDeque<Integer> alivePlayer; // 살아있는 palyer list
+	PriorityQueue<String> wordList[]; // 사용 가능한 단어 목록
+	HashMap<String, Integer> used; // 전체 라운드에서 사용한 단어 들
+	
+	public void init(int N, int M, char[][] words) 
+    {
+		alivePlayer = new ArrayDeque<>();
+		for(int i = 1; i <= N; i++)
+			alivePlayer.add(i);
+		wordList = new PriorityQueue[256]; // Ascii code 개수
+		
+		for(char ch = 'a'; ch <= 'z'; ch++)
+			wordList[ch] = new PriorityQueue<>();
+		used = new HashMap<>();
+		
+		for(int i = 0; i < M; i++) {
+			String word = String.valueOf(words[i]);
+			wordList[words[i][0]].add(word);
+			used.put(word, null);
+		}
+	}
+	
+	public int playGame(int playerId, char startChar) 
+    {
+		while(alivePlayer.peekFirst() != playerId) {
+			alivePlayer.addLast(alivePlayer.pollFirst());
+		}
+		// 현재 라운드에서 사용한 단어 목록
+		ArrayList<String> usedRound = new ArrayList<>();
+		
+		while(true) {
+			
+			if(wordList[startChar].isEmpty())
+				break; // 고를 수 있는 단어가 없는 경우 플레이 종료
+			String s = wordList[startChar].remove();
+			
+			usedRound.add(s); // 현재 라운드 사용 목록에 추가
+			used.put(s, 1); // 전체 라운드 사용 목록에 추가
+			
+			
+			// 플레이어 차례 넘기기
+			startChar = s.charAt(s.length() - 1);
+			alivePlayer.addLast(alivePlayer.pollFirst());
+		}
+		
+		for(String s : usedRound) {
+			String rev = "";
+			for(int i = 0; i < s.length(); i++)
+				rev = s.charAt(i) + rev;
+			if(used.containsKey(rev)) // 이미 사용해본적 있는 단어
+				continue;
+			wordList[rev.charAt(0)].add(rev);
+		}
+		return alivePlayer.pollFirst();
+	}
+}

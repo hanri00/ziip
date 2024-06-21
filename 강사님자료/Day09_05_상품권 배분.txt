@@ -1,0 +1,168 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+
+	static class Team {
+		int groupId; // 최상위 부서의 ID
+		int parentId; // 지금 팀의 직속 부서 ID
+		int sum; // 총 인원 수
+		int isRemoved = 0; // 이 팀은 날라갔는가?
+		// 이 팀의 child 부서들 => 최대 3개
+		ArrayList<Integer>child = new ArrayList<>();
+		Team(int groupId, int parentId, int sum) {
+			this.groupId = groupId;
+			this.parentId = parentId;
+			this.sum = sum; 
+		}
+	}
+	// index : team 번호
+	// value : 해당 팀에 대한 정보
+	static Team[]teams; 
+	
+	// key : 부서 번호 (실제 번호)
+	// value : 팀 번호 (부여한 번호 => teamNum)
+	static HashMap<Integer, Integer>hm;
+
+	// index : 부서 번호 (최상위 부서)
+	// value : 해당 부서에 포함된 총 인원 수
+	static int[] groupCnt; 
+	
+	// 최상위 부서 번호 (1~N)
+	static int groupNum; 
+	// 각 팀의 번호 (1~N)
+	static int teamNum;
+	
+	// 최상위 부서의 개수
+	static int n; 
+
+    void init(int N, int[]mId, int[]mNum) {
+    	n = N;
+    	
+    	// add의 호출 횟수 = 17000, 최대 17000개의 팀이 만들어질 수 있다.
+    	teams = new Team[17001 + N]; 
+    	hm = new HashMap<>(); 
+    	// 최상위 부서의 개수 = N
+    	groupCnt = new int[N+1]; 
+    	
+    	teamNum = 1;
+    	groupNum = 1;
+    	
+    	// 최상위 그룹 정리
+    	for(int i = 0; i < N; i++) {
+    		// groupNum 최상위 그룹에는 일단 mNum[i]명의 부서원이 있다.
+    		groupCnt[groupNum] = mNum[i];
+    		// 이 팀은 gropNum 소속이며, mNum명의 인원이 있다.
+    		// 최상단 parent이므로 parent = 0으로 연결한다. 
+    		teams[teamNum] = new Team(groupNum, 0, mNum[i]);
+    		// 이 실제 소속 = teamNum번으로 관리
+    		hm.put(mId[i], teamNum);
+    		groupNum++;
+    		teamNum++; 
+    	}
+    	return; 
+    }
+
+    int add(int mId, int mNum, int mParent) {
+    	
+    	// 현재 추가되는 부서의 부모 부서 확인
+    	int parentID = hm.get(mParent);
+    	
+    	// 만약 이미 3개의 child를 가지고 있다면 -> 추가되지 못한다.
+    	if(teams[parentID].child.size() == 3)
+    		return -1; 
+    	
+    	// 이 새롭게 생기는 팀 = 부모의 최상위 팀 소속의 팀에 들어가게 된다.
+    	int groupID = teams[parentID].groupId; 
+    
+    	// 새로운 팀이 생성된다! => 이 최상의 부서로, mParent를 상위 부서를 가지는 부서에 mNum명이 있다.
+    	hm.put(mId, teamNum); 
+    	teams[teamNum] = new Team(groupID, mParent, mNum);
+    	
+    	// 이 최상위 부서에 mNum명이 추가된다.
+    	groupCnt[groupID] += mNum;
+    
+    	// parent쪽에 teamNum이 child로 추가된다.
+    	teams[parentID].child.add(teamNum); 
+    	
+    	//=========================================
+    	// 거슬러 올라가면서 상위 부서들 업데이트를 한다.
+    	update(mParent, mNum); 
+    	teamNum++; 
+        return teams[parentID].sum;
+    }
+    
+    int remove(int mId) {
+    	// mId번 소속이 존재하지 않는다면 -1
+    	if(hm.get(mId) == null)
+    		return -1;
+    	
+    	int teamID = hm.get(mId);
+    	
+    	// 만약 이미 삭제된 team ID라면 -1
+    	if(teams[teamID].isRemoved == 1)
+    		return -1;
+    	
+    	// 이 팀의 아래에 연결된 모든 팀을 삭제시킨다.
+    	delete(teamID); 
+    	
+    	// 부모에게서 삭제
+    	int parentID = teams[teamID].parentId; 
+    	teams[hm.get(parentID)].child.remove(new Integer(teamID));
+    	
+    	int sum = teams[teamID].sum; 
+    	
+    	update(teams[teamID].parentId, -sum);
+    	groupCnt[teams[teamID].groupId] -= sum; 
+    	
+    	return sum; 
+    }
+    
+    int distribute(int K) {
+    	int left = 1;
+    	int right = 0;
+    	
+    	int de = 1; 
+    	
+    	for(int i = 1; i <= n; i++) 
+    		right = Math.max(groupCnt[i], right);
+    	
+    	while(left <= right) {
+    		int mid = (left + right) / 2; 
+    		if(test(mid, K)) {
+    			left = mid + 1; 
+    		}
+    		else {
+    			right = mid - 1; 
+    		}
+    	}
+    	return right;
+    }
+    
+    static boolean test(int mid, int K) {
+    	int cnt = 0; 
+    	for(int i = 1; i <= n; i++) {
+    		if(groupCnt[i] <= mid) 
+    			cnt += groupCnt[i];
+    		else
+    			cnt += mid;
+    		if(cnt > K)
+    			return false; 
+    	}
+    	return true; 
+    }
+    
+    static void delete(int team) {
+    	teams[team].isRemoved = 1;
+    	for(int i = 0; i < teams[team].child.size(); i++) 
+    		delete(teams[team].child.get(i)); 
+    }
+    
+    static void update(int parent, int num) {
+    	while(parent != 0) {
+    		int parentID = hm.get(parent);
+    		teams[parentID].sum += num;
+    		parent = teams[parentID].parentId; 
+    	}
+    }
+}

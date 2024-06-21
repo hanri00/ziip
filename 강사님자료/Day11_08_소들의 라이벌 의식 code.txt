@@ -1,0 +1,58 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
+public class Main {
+    static final int MAX_HEIGHT = 1000000;
+    static int n;
+    static int[] input;
+    static int[] arr;
+    static int[] seg;
+
+    static int setUpdate(int idx, int s, int e, int a, int b) {
+        if (!(s <= a && a <= e)) return seg[idx];
+        if (s == e) return seg[idx] = arr[a] = b;
+
+        int mid = (s + e) / 2;
+        int t1 = setUpdate(idx * 2 + 0, s, mid, a, b);
+        int t2 = setUpdate(idx * 2 + 1, mid + 1, e, a, b);
+        return seg[idx] = t1 + t2;
+    }
+
+    static int getSum(int idx, int s, int e, int tarS, int tarE) {
+        if (tarS <= s && e <= tarE) return seg[idx];
+        if (tarE < s || e < tarS) return 0;
+
+        int mid = (s + e) / 2;
+        int t1 = getSum(idx * 2 + 0, s, mid, tarS, tarE);
+        int t2 = getSum(idx * 2 + 1, mid + 1, e, tarS, tarE);
+        return t1 + t2;
+    }
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st;
+
+        n = Integer.parseInt(br.readLine());
+        input = new int[n];
+        arr = new int[MAX_HEIGHT + 1];
+        seg = new int[4 * MAX_HEIGHT];
+
+        st = new StringTokenizer(br.readLine());
+        for (int i = 0; i < n; i++) {
+            int height = Integer.parseInt(st.nextToken());
+            input[i] = height;
+            setUpdate(1, 1, MAX_HEIGHT, height, arr[height] + 1);
+        }
+
+        int cnt = 0;
+        for (int i = 0; i < n; i++) {
+            int height = input[i];
+            cnt += getSum(1, 1, MAX_HEIGHT, height + 1, MAX_HEIGHT);
+            setUpdate(1, 1, MAX_HEIGHT, height, arr[height] - 1);
+        }
+
+        System.out.println(cnt);
+    }
+}

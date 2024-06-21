@@ -1,0 +1,74 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	class Student implements Comparable<Student>{
+		int grade;
+		int gender;
+		int score;
+		int id;
+		public Student(int grade, int gender, int score, int id) {
+			super();
+			this.grade = grade;
+			this.gender = gender;
+			this.score = score;
+			this.id = id;
+		}
+		@Override
+		public int compareTo(Student right) {
+			// TODO Auto-generated method stub
+	        if (score < right.score) return -1;
+	        if (score > right.score) return 1;
+	        if (id < right.id) return -1;
+	        if (id > right.id) return 1;
+	        return 0;
+		}
+	}
+	
+	TreeMap<Student, Integer> students[][];
+	HashMap<Integer, Student> id2student;
+	
+	public void init() {
+		students = new TreeMap[4][2];
+		for(int i = 0; i < 4; i++)
+			for(int j = 0; j < 2; j++)
+				students[i][j] = new TreeMap<>();
+		id2student = new HashMap<>();
+	}
+
+	public int add(int mId, int mGrade, char mGender[], int mScore) {
+		int gen = 0;
+		if(mGender[0] == 'f')
+			gen = 1;
+		Student student = new Student(mGrade, gen, mScore, mId);
+		students[mGrade][gen].put(student, mId);
+		id2student.put(mId, student);
+		return students[mGrade][gen].lastKey().id;
+	}
+
+	public int remove(int mId) {
+		if(!id2student.containsKey(mId)) return 0;
+		Student student = id2student.get(mId);
+		id2student.remove(mId);
+		TreeMap<Student, Integer> tm = students[student.grade][student.gender];
+		tm.remove(student);
+		if(tm.isEmpty()) return 0;
+		return tm.firstKey().id;
+	}
+
+	public int query(int mGradeCnt, int mGrade[], int mGenderCnt, char mGender[][], int mScore) {
+		Student minStudent = new Student(0, 0, 300001, 0);
+		Student threshold = new Student(0, 0, mScore, 0);
+		for(int i = 0; i < mGradeCnt; i++)
+			for(int j = 0; j < mGenderCnt; j++) {
+				int gen = 0;
+				if(mGender[j][0] == 'f')
+					gen = 1;
+				Student bestStudent = students[mGrade[i]][gen].ceilingKey(threshold);
+				if(bestStudent == null) continue;
+				if(minStudent.compareTo(bestStudent) > 0)
+					minStudent = bestStudent;
+			}
+		return minStudent.id;
+	}
+}

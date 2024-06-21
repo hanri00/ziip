@@ -1,0 +1,210 @@
+import java.io.*;
+import java.util.*; 
+
+class userSolution 
+{
+	static class Passenger {
+		int id; 
+		int point;
+		Passenger(int id, int point) {
+			this.id = id;
+			this.point = point; 
+		}
+	}
+	
+	static class mincmp implements Comparator<Passenger> {
+		@Override
+		public int compare(Passenger a, Passenger b) {
+			// #1. 포인트 낮은순
+			if(a.point < b.point) return -1;
+			if(a.point > b.point) return 1; 
+			
+			// #2. ID 큰 순
+			if(a.id > b.id) return -1;
+			if(a.id < b.id) return 1;
+			return 0; 
+		}
+	}
+	
+	static class maxcmp implements Comparator<Passenger> {
+		@Override
+		public int compare(Passenger a, Passenger b) {
+			// #1. 포인트 높은 순
+			if(a.point > b.point) return -1;
+			if(a.point < b.point) return 1; 
+			
+			// #2. ID 작은 순 
+			if(a.id < b.id) return -1;
+			if(a.id > b.id) return 1;
+			return 0; 
+		}
+	}
+	
+	// 필요한 자료구조들 
+	// #1. POINT (DAT) 
+	// index : ID
+	// value : ID가 보유한 포인트 
+	static int[] POINT; 
+	
+	// #2. JOBS 
+	// index : 직업 번호
+	// value(arraylist) : 각 직업을 가진 승객의 ID 
+	static ArrayList<Integer>JOBS[]; 
+	
+	// #3. CarNum
+	// index : ID
+	// value : ID가 지금 타고 있는 객차 번호 
+	static int[] CarNum;
+	
+	// #4. PQ 구조 
+	// index : 객차 번호
+	// value : PriorityQueue로서, 우선순위가 낮은 승객, 우선순위가 높은 승객
+	static PriorityQueue<Passenger>MINHEAP[];
+	static PriorityQueue<Passenger>MAXHEAP[];
+	
+	// 객차의 수
+	static int carcnt; 
+	
+	public void init(int N, int M, int J, int[] Point, int[] JobID) 
+	{
+		// N = 탑승객의 수
+		// M = 각 객차에 있는 사람들의 수
+		POINT = new int[N + 1];
+		CarNum = new int[N + 1]; 
+		
+		JOBS = new ArrayList[J];
+		for(int i = 0; i < J; i++)
+			JOBS[i] = new ArrayList<>(); 
+		
+		carcnt = N/M; 
+		
+		MINHEAP = new PriorityQueue[N/M];
+		MAXHEAP = new PriorityQueue[N/M];
+		for(int i = 0; i < N/M; i++) {
+			MINHEAP[i] = new PriorityQueue<>(new mincmp());
+			MAXHEAP[i] = new PriorityQueue<>(new maxcmp());
+		}
+		
+		for(int i = 0; i < N; i++) {
+			int ID = i; // ID = i번 승객은 
+			POINT[i] = Point[i]; // Point[i] 점을 가지고 있고 
+			CarNum[i] = i / M; // i / M 번 객차에 탑승하고 있고
+			JOBS[JobID[i]].add(i); // JobID[i]번 직업을 가졌다 
+			// 이제 i번승객이 여기 있다는거 아니까
+			MINHEAP[i/M].add(new Passenger(ID, POINT[i]));
+			MAXHEAP[i/M].add(new Passenger(ID, POINT[i]));
+		}
+	}
+	
+	public void destroy() 
+	{
+		// 무시 
+	}
+	
+	public int update(int uID, int Point) 
+	{
+      	int ID = uID; 
+		// ID가 uID인 탑승객의 계좌에 Point를 반영하고, 
+		// 해당 탑승객의 보유 Point를 return하는 함수입니다.
+		POINT[ID] += Point; 
+		
+		// 특정객차에 존재하는 ID번 승객의 POINT가 바뀌었습니다.
+		// --> 각 객차의 우선순위에 해당하는 승객이 바뀌었을수 있습니다. 
+		// 하지만 PQ에 이미 들어가있는 승객의 정보를 수정하긴 어려워요.
+		// --> 업데이트된 친구 -> 쑤셔넣어줄겁니다.
+		MINHEAP[CarNum[ID]].add(new Passenger(ID, POINT[ID]));
+		MAXHEAP[CarNum[ID]].add(new Passenger(ID, POINT[ID]));
+		
+		return POINT[ID]; 
+	}
+	
+	public int updateByJob(int JobID, int Point) 
+	{
+		// 직업 ID가 JobID 인 모든 탑승객의 계좌에 Point를 반영하고, 
+		// 해당 JobID를 가진 모든 탑승객이 보유한 Point의 합을 return하는 함수입니다
+		int sum = 0; 
+		for(int i = 0; i < JOBS[JobID].size(); i++) {
+			// 이 jobID를 가진 사람 
+			int ID = JOBS[JobID].get(i);
+			// POINT[ID] += Point; // 새롭게 update -> PQ에도 넣어줘야 하죠?
+			sum += update(ID, Point); 
+		}
+		return sum; 
+	}
+	
+	public int move(int num) 
+	{
+		// 각 객차별로 포인트가 많은 순으로 상위 num 명의 탑승객과 하위 num 명의 탑승객을 선발하고, 
+		// 객차를 이동시킨 후, 이동한 탑승객들의 Point의 합을 return하는 함수입니다.
+		ArrayList<Integer>q[] = new ArrayList[carcnt]; //ID
+		for(int i = 0; i < carcnt; i++)
+			q[i] = new ArrayList<>(); 
+		
+		// 일단은 모든 객차를 봐야합니다.
+		for(int i = 0; i < carcnt; i++) {
+			// 모든 객차에서 num명을 빼올겁니다.
+			for(int j = 0; j < num; j++) {
+				// 상위 num명 
+				// PQ에서 뺴와야 합니다. 
+				// 하지만 지금 저희는 쑤셔넣기만 했으니까, 바로 뺴오는 num명이 "실존하는" 승객이 아닐 수도 있다.
+				while(true) {
+					// 0번객차에서는 올라가는 경우 X
+					if(i == 0)
+						break; 
+					
+					Passenger now = MAXHEAP[i].remove(); // 알아서 삭제
+					// #1. 이 승객이 실제로 지금 i번 객차에 존재하는 사람인가?
+					// #2. 과거의 승객인가? 
+					if(CarNum[now.id] != i || POINT[now.id] != now.point)
+						continue;
+					// 실존하는 인물이다! 
+					// 하나 위의 객차로 옮겨줘야 하는것. --> 여기서 바로 옮기면
+					// 이 다음 객차를 확인할때 -> 이미 얘가 옮겨진 상태로 확인?? 
+					// 일단 빼두고 나중에 한번에 넣어줄겁니다. -> 대기열 
+					//i번 객차 -> i-1번 객차로 옮겨져야하는것.
+					q[i-1].add(now.id);
+					// 그리고 이제 now.id는 이 객차에 존재하지 않게되는것.
+					CarNum[now.id] = -1; // 없어졌다. 
+					
+					// 일단 한명 빠지면
+					break; 
+				}
+				
+				// 하위 num명
+				while(true) {
+					// carcnt-1번객차에서는 내려갈곳 X
+					if(i == carcnt-1)
+						break; 
+					
+					Passenger now = MINHEAP[i].remove(); // 알아서 삭제
+					// #1. 이 승객이 실제로 지금 i번 객차에 존재하는 사람인가?
+					// #2. 과거의 승객인가? 
+					if(CarNum[now.id] != i || POINT[now.id] != now.point)
+						continue;
+					// 실존하는 인물이다! 
+					//i번 객차 -> i+1번 객차로 옮겨져야하는것.
+					q[i+1].add(now.id);
+					// 그리고 이제 now.id는 이 객차에 존재하지 않게되는것.
+					CarNum[now.id] = -1; // 없어졌다. 
+					
+					// 일단 한명 빠지면
+					break; 
+				}
+			}
+		}
+		
+		// 이제 arraylist = 대기열에 존재하는 모든 사람들을 다시 넣어주면 됩니다.
+		int sum = 0; 
+		for(int i = 0; i < carcnt; i++) {
+			for(int j = 0; j < q[i].size(); j++) {
+				// 승객 ID
+				int ID = q[i].get(j); 
+				// 이제 이 승객은 i번 객차에 존재하게 될거다!
+				CarNum[ID] = i; 
+				// ID번 승객이 앞으로 넘어갔으니까, 이 객차의 우선순위도 바뀔수 있는것 -> PQ에 update
+				sum += update(ID, 0);
+			}
+		}
+		return sum; 
+	}
+}

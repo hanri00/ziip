@@ -1,0 +1,49 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
+
+import java.util.ArrayList; 
+
+class UserSolution
+{
+	public void playGame(int N)
+	{
+		//초기화 
+		ArrayList<Integer>al[] = new ArrayList[50001];
+		for(int i = 0; i <= N; i++)
+			al[i] = new ArrayList<>();
+		
+		for(int i = 1; i < N * 2; i++) {
+			int left = 0;
+			int right = N-1;
+			int diff = 0;
+			while(left <= right) {
+				int mid = (left + right) / 2; 
+				// abs(cards[0]-cards[i]) <= mid인가?
+				if(Main.checkCards(0, i, mid)) {
+					right = mid - 1; 
+					diff = mid;
+				}
+				else {
+					left = mid + 1; 
+				}
+			}
+			al[diff].add(i);
+		}
+		
+		for(int i = 1; i < N; i++) {
+			if(al[i].isEmpty()) 
+				continue;
+			else if(al[i].size() == 2)
+				Main.checkCards(al[i].get(0), al[i].get(1), 0);
+			else {
+				if(Main.checkCards(al[i].get(0), al[i].get(1), 0))
+					Main.checkCards(al[i].get(2), al[i].get(3), 0);
+				if(Main.checkCards(al[i].get(0), al[i].get(2), 0))
+					Main.checkCards(al[i].get(1), al[i].get(3), 0);
+				if(Main.checkCards(al[i].get(0), al[i].get(3), 0))
+					Main.checkCards(al[i].get(1), al[i].get(2), 0);
+			}
+		}
+	}
+}

@@ -1,0 +1,133 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	static class Edge implements Comparable <Edge>{
+		int num;
+		int cost;
+		Edge(int num, int cost){
+			this.num = num;
+			this.cost = cost; 
+		}
+		@Override
+		public int compareTo(Edge o) {
+			if(this.cost < o.cost) return -1;
+			if(this.cost > o.cost) return 1;
+			return 0; 
+		}
+	}
+
+	static int[] parent;
+	static ArrayList<Edge>[] al; // graph
+	static int[] brandCnt;
+	static int n; 
+	
+	static int find(int node) {
+		if(node == parent[node])
+			return node;
+		return parent[node] = find(parent[node]); 
+	}
+	
+	void init(int N, int[] mBrands) {
+		
+		parent = new int[50 + N]; 
+		for(int i = 0; i < 50 + N; i++)
+			parent[i] = i; 
+		
+		al = new ArrayList[N]; 
+		for(int i = 0; i < N; i++)
+			al[i] = new ArrayList<>();
+		
+		brandCnt = new int[50 + N]; 
+		
+		for(int i = 0; i < N; i++) {
+			// i번 호텔의 brand = mBrands[i] + N; 
+			parent[i] = mBrands[i] + N;
+			// 이 브랜드의 호텔이 한개 더 있다. 
+			brandCnt[parent[i]]++; 
+		}
+		
+		n = N; 
+		return; 
+	}
+
+	// 1,000 x O(1)
+	void connect(int mHotelA, int mHotelB, int mDistance) {
+		al[mHotelA].add(new Edge(mHotelB, mDistance));
+		al[mHotelB].add(new Edge(mHotelA, mDistance));
+		return; 
+	}
+	
+	// 100 x O(a(5,000)) -> 100
+	int merge(int mHotelA, int mHotelB) {
+		// union-find
+		int pa = find(mHotelA); // A 호텔의 brand
+		int pb = find(mHotelB); // B 호텔의 brand 
+		if(pa == pb) 
+			return brandCnt[pa]; // brand가 동일하면, A호텔의 브랜드 return 
+		else {
+			// 인수
+			brandCnt[pa] += brandCnt[pb]; 
+			parent[pb] = pa;
+			return brandCnt[pa]; 
+		}
+	}
+
+	// 1,000 x O(ElogE)
+	// 1,000 x 10,000 log 10,000 = ~1.3억
+	// --> A, B를 찾자말자 break하여 최적화 
+	int move(int mStart, int mBrandA, int mBrandB) {
+		// dijkstra 
+		int[] dist = new int[n];
+		for(int i = 0; i < n; i++)
+			dist[i] = Integer.MAX_VALUE;
+		dist[mStart] = 0; 
+		
+		PriorityQueue<Edge>pq = new PriorityQueue<>();
+		pq.add(new Edge(mStart, 0)); 
+		
+		boolean foundA = false;
+		boolean foundB = false;
+		
+		int minDistA = 0;
+		int minDistB = 0; 
+		
+		while(!pq.isEmpty()) {
+			Edge now = pq.remove(); 
+			if(dist[now.num] < now.cost)
+				continue;
+			
+			// now에 방문하는 순간 = 최단 거리가 확정되는 순간.
+			if(now.num != mStart) {
+				// 현재 node의 brand 확인 
+				int pa = find(now.num);
+				
+				// A Brand를 처음 찾는다면
+				if(foundA == false && pa == mBrandA + n) {
+					foundA = true;
+					minDistA = now.cost; 
+				}
+				// B Brand를 처음 찾는다면
+				else if(foundB == false && pa == mBrandB + n) {
+					foundB = true;
+					minDistB = now.cost; 
+				}
+				// 두개를 모두 찾았다면 -> 더 둘러볼 필요 없음
+				if(foundA && foundB) {
+					break;  
+				}
+			}
+		
+			for(Edge next : al[now.num]) {
+				int nCost = next.cost + now.cost;
+				if(dist[next.num] <= nCost)
+					continue;
+				dist[next.num] = nCost;
+				pq.add(new Edge(next.num, nCost)); 
+			}
+		}
+		
+		return minDistA + minDistB;
+	}
+}

@@ -1,0 +1,26 @@
+const int LM = 1 << 18;
+
+struct PQ {
+    Data heap[LM];
+    int hn;
+    int size() { return hn; }
+    bool empty() { return hn == 0; }
+    void clear() { hn = 0; }
+    Data top() { return heap[1]; }
+    void push(Data nd) {
+        int c = ++hn;
+        for (; c > 1 && nd < heap[c / 2]; c /= 2)
+            heap[c] = heap[c / 2];
+        heap[c] = nd;
+    }
+    void pop() {
+        Data nd = heap[hn--];
+        int c = 2;
+        for (; c <= hn; c *= 2) {
+            if (c < hn && heap[c + 1] < heap[c]) c++;
+            if (heap[c] < nd) heap[c / 2] = heap[c];
+            else break;
+        }
+        heap[c / 2] = nd;
+    }
+}pq;

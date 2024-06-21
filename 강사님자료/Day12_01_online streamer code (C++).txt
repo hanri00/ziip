@@ -1,0 +1,94 @@
+// main.cpp
+
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include <stdio.h>
+#include <iostream>
+using namespace std; 
+
+struct Node {
+    int sum;
+    int minCnt; 
+    int maxCnt; 
+};
+
+// user.cpp
+Node tree[200001 * 4];
+int subscribers[200001]; 
+int n; 
+
+Node merge(Node left, Node right) {
+    Node node = { 0, 0, 0 };
+    node.sum = left.sum + right.sum; 
+    node.minCnt = min(left.minCnt, right.minCnt);
+    node.maxCnt = max(left.maxCnt, right.maxCnt); 
+    return node; 
+}
+
+Node initTree(int st, int en, int node, int mSubscriber[]) {
+    if (st == en) {
+        subscribers[st] = mSubscriber[st-1];
+        return tree[node] = { mSubscriber[st-1], mSubscriber[st-1], mSubscriber[st-1] };
+    }
+    int mid = (st + en) / 2;
+    Node leftVal = initTree(st, mid, node * 2, mSubscriber);
+    Node rightVal = initTree(mid + 1, en, node * 2 + 1, mSubscriber);
+    return tree[node] = merge(leftVal, rightVal); 
+}
+
+Node query(int st, int en, int node, int left, int right) {
+    if (left > en || right < st)
+        return { 0, 1234567890, -1234567890 };
+    if (left <= st && right >= en)
+        return tree[node];
+    int mid = (st + en) / 2;
+    Node leftVal = query(st, mid, node * 2, left, right); 
+    Node rightVal = query(mid + 1, en, node * 2 + 1, left, right); 
+    return merge(leftVal, rightVal);
+}
+
+Node update(int st, int en, int node, int idx, int val) {
+    if (idx < st || idx > en)
+        return tree[node];
+    if (st == en) {
+        Node now = tree[node];
+        int s = now.sum + val; 
+        int minc = now.minCnt + val;
+        int maxc = now.maxCnt + val;
+        subscribers[idx] += val; 
+        tree[node] = { s, minc, maxc };
+        return tree[node]; 
+    }
+    int mid = (st + en) / 2;
+    Node leftVal = update(st, mid, node * 2, idx, val);
+    Node rightVal = update(mid + 1, en, node * 2 + 1, idx, val);
+    return tree[node] = merge(leftVal, rightVal); 
+}
+
+void init(int N, int mSubscriber[]) {
+    n = N;
+    initTree(1, N, 1, mSubscriber); 
+    return;
+}
+
+int subscribe(int mId, int mNum) {
+    update(1, n, 1, mId, mNum); 
+    return subscribers[mId];
+}
+
+int unsubscribe(int mId, int mNum) {
+    update(1, n, 1, mId, -mNum);
+    return subscribers[mId];
+}
+
+int count(int sId, int eId) {
+    Node res = query(1, n, 1, sId, eId);
+    return res.sum;
+}
+
+int calculate(int sId, int eId) {
+    Node res = query(1, n, 1, sId, eId);
+    return res.maxCnt - res.minCnt;
+}

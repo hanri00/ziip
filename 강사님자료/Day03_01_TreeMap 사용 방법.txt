@@ -1,0 +1,106 @@
+import java.io.*;
+import java.util.*;
+
+public class Main {
+	
+	// sequence container
+//	배열 <- ArrayList
+//	ArrayDeque, LinkedList
+	
+	// 한 줄로 data를 관리 X
+	//TreeMap<> <- 내부적으로 data를 정렬된 형태로 관리
+	//   Key, value의 형태로 data를 묶어서 관리
+	//   key를 기준으로 data를 정렬해서 관리
+	//   key가 같은게 존재하지 X <- Unique Key
+	
+	public static void main(String[] args) {
+		TreeMap<Integer, Integer> tm = new TreeMap<>();
+		
+		tm.put(1, 2);
+		tm.put(5, 3);
+		tm.put(4, 7);
+		tm.put(3, 9);
+		tm.put(8, 4);
+		tm.put(10, 7);
+		tm.put(21, 9);
+		tm.put(7, 4);
+		
+		tm.put(1, 1);
+		
+		// TreeMap.remove(Key);
+		tm.remove(1);
+		
+		// TreeMap.containsKey(key) : key가 존재하는가? <- 효율적( O(logN) )
+		tm.containsKey(3);
+		
+		// TreeMap.containsValue(value) : value가 존재하는가? <- 비효율적( O(N) )
+		tm.containsValue(3);
+		
+		// TreeMap.get(key) : key에 따른 value를 찾아와라!
+		int value = tm.get(3);
+		
+		/*
+		ArrayList<Integer> al = new ArrayList<>();
+		al.add(1);al.add(2);al.add(3);al.add(1);
+		for(int i = 0; i < al.size(); i++) // <- 
+			System.out.print(al.get(i));
+		System.out.println();
+		
+		for(int el : al)
+			System.out.print(el);
+		*/
+		
+		// TreeMap.entrySet() : treemap을 순회할 수 있는 set구조로 만들어 달라.
+		//                      (TreeMap자체가 바뀌는 것은 아니고 set구조인 것으로 반환)
+		
+		// Map.Entry<Key, Value> : Key와 Value를 묶어놓은 구조
+		
+//		for(Map.Entry<Integer, Integer> entry : tm.entrySet() ) {
+//			System.out.println(entry);
+//			int entryKey = entry.getKey();
+//			int entryValue = entry.getValue();
+//			System.out.println("key : " + entryKey);
+//			System.out.println("value : " + entryValue);
+//		}
+		
+		// data들을 일부만 추출해서 사용
+		
+		// 5이상 ~ 8이하에 해당하는 data들을 꺼내달라.
+		// TreeMap.subMap(fromKey, fromInclusive, toKey, toInclusive)
+		//   -> fromKey ~ toKey
+		//   -> 범위를 설정할때, fromKey를 포함할지 : fromInclusive
+		//   -> 범위를 설정할때, toKey를 포함할지 : toInclusive
+//		fromInclusive : true => fromKey'이상' 
+//				      : false => fromKey'초과'
+//		toInclusive : true => toKey'이하' 
+//	      			: false => toKey'미만'
+		
+//		Map<Integer,Integer> sub = tm.subMap(5, true, 8, true);
+//		for(Map.Entry<Integer, Integer> entry : sub.entrySet()) {
+//			System.out.println(sub);
+//		}
+		
+
+		// O(logN)
+		//Map.Entry<Integer, Integer> entry = 
+		System.out.println(tm.ceilingEntry(30)); // key이상에 해당하는 data 
+		System.out.println(tm.floorEntry(30));   // key이하에 해당하는 data
+		System.out.println(tm.lowerEntry(30));   // key미만에 해당하는 data
+		System.out.println(tm.higherEntry(30));  // key초과에 해당하는 data
+		
+		
+		System.out.println(tm.get(30));
+		
+		if(tm.containsKey(30)) {
+			int value30 = tm.get(30);
+		}
+		
+		tm.size();
+		tm.isEmpty();
+		
+		
+		
+		int de = 1;
+	}
+
+}

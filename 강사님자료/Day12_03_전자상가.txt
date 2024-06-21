@@ -1,0 +1,117 @@
+import java.io.*;
+import java.util.*; 
+
+class UserSolution {
+	static class Parts {
+		int price; // 가격
+		int performance; // 성능
+		Parts(int price, int performance) {
+			this.price = price;
+			this.performance = performance; 
+		}
+	}
+	
+	static int test(int performance, int budget) {
+		
+		int[][] temp = new int[2][3]; 
+		
+		// 각 창고에서 mid 이상의 performance를 내는 것 중 가장 싼것을 확인
+		// 4,000
+		for(int i = 0; i < 2; i++) {
+			for(int j = 0; j < 3; j++) {
+				temp[i][j] = 500001; // cheapest 계산이 budget보다 무조건 더 나가야 함
+				for(int k = 0; k < warehouse[i][j].size(); k++) {
+					Parts now = warehouse[i][j].get(k); 
+					if(now.performance >= performance && now.price < temp[i][j]) {
+						temp[i][j] = now.price; 
+					}
+				}
+			}
+		}
+		
+		// #1. 0번 창고에서 다 꺼낼 경우
+		int onlyfrom0 = temp[0][0] + temp[0][1] + temp[0][2];
+		
+		// #2. 1번 창고에서 다 꺼낼 경우
+		int onlyfrom1 = temp[1][0] + temp[1][1] + temp[1][2]; 
+	
+		// #3. 두개 합쳐서 꺼낼 경우.
+		int fromBoth = Math.min(temp[0][0], temp[1][0]) + Math.min(temp[0][1], temp[1][1]) + Math.min(temp[0][2], temp[1][2]) + shippingFee;
+		
+		int cheapest = Math.min(Math.min(onlyfrom0, onlyfrom1), fromBoth); 
+		
+		if(cheapest <= budget)
+			return cheapest; 
+		return -1; 
+	}
+	
+	// 운송료
+	static int shippingFee;
+	
+	// 창고
+	// index 1 : 창고 번호
+	// index 2 : 부품 번호
+	// value : 존재하는 부품
+	static ArrayList<Parts>[][] warehouse; 
+	
+	void init(int mCharge)
+	{
+		shippingFee = mCharge; 
+		
+		// 2개의 부품 창고 
+		// 3종류의 부품
+		warehouse = new ArrayList[2][3]; 
+		for(int i = 0; i < 2; i++) {
+			for(int j = 0; j < 3; j++) {
+				warehouse[i][j] = new ArrayList<>(); 
+			}
+		}
+		
+		return;
+	}
+	
+	// x 4,000 x O(1)
+	int stock(int mType, int mPrice, int mPerformance, int mPosition)
+	{
+		// mPosition 부품 창고에 mType의 부품이 새롭게 추가된다. 
+		warehouse[mPosition][mType].add(new Parts(mPrice, mPerformance));
+		// 동일한 타입의 부품 개수 return
+		return warehouse[mPosition][mType].size();
+	}
+
+	// x 400 x log(1,000,000) x 4,000 = 
+	Main.Result order(int mBudget)
+	{
+		Main.Result res = new Main.Result();
+		// res.mPrice = 가격
+		// res.mPerformance = 성능
+		
+		// 최대의 성능을 내는 조합 찾기 => 같은 성능이면 가장 싼 것으로.
+		// 부품은 품절되는 경우 없음. 
+		// 당연히 모든 경우를 보면 안될 것. 
+		
+		// Parametric Search => 이 performance가 나는 컴퓨터를 이 mBudget으로 만들 수 있을까? 
+		int left = 1; // 최소 performacne 
+		int right = 1000001; //  최대 performance; 
+		int price = 0; 
+		
+		while(left <= right) {
+			int mid = (left + right) / 2;
+			
+			int result = test(mid, mBudget);
+			
+			if(result != -1) {
+				// 더 성능을 늘릴 수 있는지 보자 
+				left = mid + 1; 
+				price = result;
+			}
+			else { 
+				right = mid - 1;
+			}
+		}
+		
+		res.mPerformance = right;
+		res.mPrice = price; 
+		return res;
+	}
+}

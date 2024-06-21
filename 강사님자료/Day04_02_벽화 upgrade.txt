@@ -1,0 +1,94 @@
+import java.io.*;
+import java.util.*;
+
+
+/*
+ * pro문제 : 전체 data에서 원하는 data를 빠르게 접근
+ *          1. *분류*
+ *          2. 우선순위에 따라 접근(TreeMap)
+ * 			3. 일부 매칭 - Magic Number : pro보다 expert에서 더 많이 나옴
+ */
+
+public class Main {
+	static class Coord{
+		int row;
+		int col;
+		public Coord(int row, int col) {
+			super();
+			this.row = row;
+			this.col = col;
+		}
+	}
+	static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+	
+	public static void main(String[] args) throws NumberFormatException, IOException {
+		StringTokenizer st = new StringTokenizer(br.readLine());
+		int rowSize = Integer.parseInt(st.nextToken());
+		int colSize = Integer.parseInt(st.nextToken());
+		
+		int MAP[][] = new int[rowSize][colSize];
+		for(int row = 0; row < rowSize; row++) {
+			st = new StringTokenizer(br.readLine());
+			for(int col = 0; col < colSize; col++) {
+				MAP[row][col] = Integer.parseInt(st.nextToken());
+			}
+		}
+		
+		// filtering(일부 일치)
+		HashMap<Integer, ArrayList<Coord>> hm = new HashMap<>();
+		// key : patternSize*patternSize 크기의 패턴, value: 해당 패턴이 나오는 좌표'들'
+		
+		// ************
+		int patternSize = 3;
+		// <- 실험적으로 조정
+		//						장점							단점
+		//		- 커지는 경우? 	filtering된 후 좌표 개수 감소	패턴을 분류하는데 시간이 오래 걸림
+		//		- 작아지는 경우?	패턴을 분류하는데 시간이 덜 걸림	filtering된 후 좌표 개수 증가
+		
+		// Magic Number <- 휴리스틱 값
+		// ************
+		
+		for(int row = 0; row <= rowSize - patternSize; row++)
+			for(int col = 0; col <= colSize - patternSize; col++) {
+				int key = 0;
+				for(int r = row; r < row + patternSize; r++)
+					for(int c = col; c < col + patternSize; c++) {
+						key = key * 10 + MAP[r][c];
+					}
+				if(!hm.containsKey(key))
+					hm.put(key, new ArrayList<>());
+				hm.get(key).add(new Coord(row, col));
+			}
+		
+		
+		int searchingSize = Integer.parseInt(br.readLine());
+		int searchingMap[][] = new int[searchingSize][searchingSize];
+		for(int row = 0; row < searchingSize; row++) {
+			st = new StringTokenizer(br.readLine());
+			for(int col = 0; col < searchingSize; col++)
+				searchingMap[row][col] = Integer.parseInt(st.nextToken());
+		}
+		
+		int searchingKey = 0;
+		for(int row = 0; row < patternSize; row++)
+			for(int col = 0; col < patternSize; col++)
+				searchingKey = searchingKey * 10 + searchingMap[row][col];
+		
+		// pattern이 나오는 좌표'들'
+		ArrayList<Coord> al = hm.get(searchingKey);
+		
+		// 해당 좌표들이 완벽하게 searchingMap과 일치하는지
+		int ans = 0;
+		for(int i = 0; i < al.size(); i++) {
+			Coord coord = al.get(i);
+			boolean flag = true;
+			for(int row = coord.row; row < (coord.row + patternSize); row++){
+				for(int col = coord.col; col < (coord.col + patternSize); col++)
+					if(MAP[row][col] != searchingMap[row - coord.row][col - coord.col])
+						flag = false;
+			}
+			if(flag) ans++;
+		}
+		
+	}
+}

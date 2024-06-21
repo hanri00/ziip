@@ -1,0 +1,65 @@
+import java.io.*;
+import java.util.*;
+
+public class Main {
+	
+	// 그룹안의 인원 수
+	
+	static int groupCnt[]; // index : 그룹번호(대표 번호), value : 그룹안의 인원 수
+	
+	static int parent[];
+	
+	static int Find(int x) { // 대표찾기!!!!
+		if(parent[x] == x)
+			return x;
+		int root = Find(parent[x]);
+		parent[x] = root; // direct로 대표와 연결(최적화)
+		return root;
+	}
+	
+	static void Union(int a, int b) { // a그룹과 b그룹을 합쳐라!!!
+		int pa = Find(a);
+		int pb = Find(b);
+		
+		// 왠만하면 필수는 아니지만 권장사항
+		if(pa == pb) return; // 이미 같은 그룹이면 합치는 과정 X
+		
+		groupCnt[pa] += groupCnt[pb]; // pa가 최종 대표가 되므로 pb의 인원수 합병
+		groupCnt[pb] = 0; // pb는 대표가 아니니 data 삭제
+		
+		//parent[pa] = pb; // a쪽 그룹을 b쪽
+		parent[pb] = pa; // b쪽 그룹을 a쪽
+	}
+	
+	public static void main(String[] args) {
+		parent = new int[6];
+		groupCnt = new int[6];
+		for(int i = 1; i<=5; i++) {
+			parent[i] = i; // 자기 자신이 대표다!!!!!
+			groupCnt[i] = 1;
+		}
+		Union(1,2);
+		Union(3,4);
+		Union(2,4);
+		
+		if(parent[2] == parent[4]) // 2와 4가 같은 그룹
+			System.out.println("같은 그룹");
+		else
+			System.out.println("다른 그룹");
+		
+		if(Find(2) == Find(4)) // 2와 4가 같은 그룹
+			System.out.println("같은 그룹");
+		else
+			System.out.println("다른 그룹");
+		
+		// 1~4까지 모두 같은 그룹
+		System.out.println( (Find(2) == Find(3)) ); // 2랑 3이랑 같은 그룹? True
+		System.out.println( (Find(4) == Find(5)) ); // 4랑 5이랑 같은 그룹? False
+		System.out.println( (Find(1) == Find(4)) ); // 1랑 4이랑 같은 그룹? True
+		
+		System.out.println(groupCnt[ Find(4) ]); // 4가 속한 group의 인원 수
+		
+		
+	}
+
+}

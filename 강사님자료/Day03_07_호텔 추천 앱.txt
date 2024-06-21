@@ -1,0 +1,105 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	private static class Pair implements Comparable<Pair>{
+		public int price;
+		public int id;
+		
+		public Pair(int price, int id) {
+			this.price = price;
+			this.id = id;
+		}
+
+		@Override
+		public int compareTo(UserSolution.Pair o) {
+			// TODO Auto-generated method stub
+			if(price < o.price) return -1;
+			if(price > o.price) return 1;
+			if(id < o.id) return -1;
+			if(id > o.id) return 1;
+			return 0;
+		}
+	}
+	
+	
+	private static class Room{
+		private int region, bedCnt, roomType, viewType, price, id;
+		private TreeMap<Integer, Integer> reserveList;
+		private Pair roomsData;
+		public Room(int roomInfo[], int rid) {
+			region 		= roomInfo[0];
+			bedCnt 		= roomInfo[1];
+			roomType 	= roomInfo[2];
+			viewType 	= roomInfo[3];
+			price 		= roomInfo[4];
+			id			= rid;
+			roomsData = new Pair(price, id);
+			rooms[region][bedCnt][roomType][viewType].put(roomsData, id);
+			reserveList = new TreeMap<>();
+		}
+		public int reserve(int begin, int end) {
+			Map.Entry<Integer, Integer> before = 
+					reserveList.floorEntry(begin);
+			Map.Entry<Integer, Integer> after = 
+					reserveList.higherEntry(begin);
+			if(before != null && before.getValue() > begin)
+				return -1;
+			if(after != null && after.getKey() < end)
+				return -1;
+			reserveList.put(begin, end);
+			return id;
+		}
+		public int updatePrice() {
+			rooms[region][bedCnt][roomType][viewType].remove(roomsData);
+			roomsData.price += roomsData.price / 10;
+			rooms[region][bedCnt][roomType][viewType].put(roomsData, id);
+			return roomsData.price;
+		}
+	}
+
+	private static TreeMap<Pair, Integer> rooms[][][][];
+	private static ArrayList<Integer> hotel2rids[];
+	private static Room roomData[];
+	
+	public void init(int N, int roomCnt[]) {
+		rooms = new TreeMap[11][11][6][6];
+		for(int i = 0; i < 11; i++)
+			for(int j = 0; j < 11; j++)
+				for(int k = 0; k < 6; k++)
+					for(int l = 0; l < 6; l++)
+						rooms[i][j][k][l] = new TreeMap<>();
+		hotel2rids = new ArrayList[N + 1];
+		for(int i = 0; i < N + 1; i++)
+			hotel2rids[i] = new ArrayList<>();
+		roomData = new Room[100001];
+	}
+
+	public void addRoom(int hotelID, int roomID, int roomInfo[]) {
+		roomData[roomID] = new Room(roomInfo, roomID);
+		hotel2rids[hotelID].add(roomID);
+	}
+
+	public int findRoom(int requirements[]) {
+	    int ret = -1;
+	    int begin		= requirements[0],
+	    	end			= requirements[1],
+	    	region		= requirements[2],
+	    	bedCnt		= requirements[3],
+	    	roomType	= requirements[4],
+	    	viewType	= requirements[5];
+	    for(Pair room : rooms[region][bedCnt][roomType][viewType].keySet()) {
+	    	ret = roomData[room.id].reserve(begin, end);
+	    	if(ret != -1)
+	    		break;
+	    }
+		return ret;
+	}
+	
+	public int riseCosts(int hotelID) {
+		int ret = 0;
+		for(int rid : hotel2rids[hotelID])
+			ret += roomData[rid].updatePrice();
+	    return ret;
+	}
+}

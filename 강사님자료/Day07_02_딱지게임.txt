@@ -1,0 +1,118 @@
+import java.io.*;
+import java.util.*;
+
+class Solution {
+	class Box{
+		int row;
+		int col;
+		int size;
+		int num;
+		Box(int row, int col, int size, int num) {
+			this.row = row;
+			this.col = col;
+			this.size = size;
+			this.num = num;
+		}
+	}
+	
+    private final static int LM = 20003; 
+    private static int[] PARENT = new int[LM]; 
+    Box boxes[];
+    ArrayList<Box> Area[][];
+    int N, M, numbering;
+    int whoes[];
+    int boxCnt[];
+    int playerCnt[];
+    int dr[] = {-1,-1,-1, 0,0,0, 1,1,1};
+    int dc[] = {-1, 0, 1,-1,0,1,-1,0,1};
+    
+    public int Find(int x) 
+    {
+    	if(PARENT[x] == x) return x;
+    	return PARENT[x] = Find(PARENT[x]);
+    }
+    
+    public void Union(int x, int y, int pid) 
+    {
+    	x = Find(x);
+    	y = Find(y);
+    	if(x == y) return;
+    	PARENT[x] = y; 
+    	boxCnt[y] += boxCnt[x];
+    	boxCnt[x] = 0;
+    	whoes[x] = -1;
+    	whoes[y] = pid;
+    }
+    public void init(int N, int M) 
+    {
+    	this.N = N;
+    	this.M = M;
+    	numbering = 0;
+    	boxes = new Box[LM];
+    	for(int i = 0; i < LM; i++)
+    		PARENT[i] = i;
+    	Area = new ArrayList[10][10];
+    	for(int i = 0; i < 10; i++)
+    		for(int j = 0; j < 10; j++)
+    			Area[i][j] = new ArrayList<>();
+    	boxCnt = new int[LM];
+    	playerCnt = new int[3];
+    	whoes = new int[LM];
+    }
+    
+    public int add(int row, int col, int size, int pid) 
+    {
+    	Box box = new Box(row, col, size, numbering++);
+    	boxes[box.num] = box;
+    	boxCnt[box.num] = 1;
+    	playerCnt[pid]++;
+    	whoes[box.num] = pid;
+    	
+    	int areaRow = row / M;
+    	int areaCol = col / M;
+    	Area[areaRow][areaCol].add(box);
+    	
+    	for(int i = 0; i < 9; i++) {
+    		int nr = areaRow + dr[i];
+    		int nc = areaCol + dc[i];
+    		if(nr < 0 || nr >= 10 || nc < 0 || nc >= 10)
+    			continue;
+    		
+    		for(Box element : Area[nr][nc]) {
+    			if( element.row + element.size <= box.row ||
+    				element.col + element.size <= box.col ||
+    				box.row + box.size <= element.row ||
+    				box.col + box.size <= element.col)
+    				continue;
+    			if(whoes[Find(element.num)] != pid) {
+    				playerCnt[3 - pid] -= boxCnt[Find(element.num)];
+    				playerCnt[pid] += boxCnt[Find(element.num)];
+    			}
+    			Union(box.num, element.num, pid);
+    		}
+    	}
+    	return playerCnt[pid]; 
+    }
+    
+    public int get(int row, int col) 
+    {
+    	int areaRow = row / M;
+    	int areaCol = col / M;
+    	for(int i = 0; i < 9; i++) {
+    		int nr = areaRow + dr[i];
+    		int nc = areaCol + dc[i];
+    		if(nr < 0 || nr >= 10 || nc < 0 || nc >= 10)
+    			continue;
+    		for(Box element : Area[nr][nc]) {
+    			if( row < element.row || 
+    				col < element.col ||
+    				element.row + element.size <= row ||
+    				element.col + element.size <= col)
+    				continue;
+    			return whoes[Find(element.num)];
+    		}
+    		
+    	}
+    	return 0; 
+    }
+}

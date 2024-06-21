@@ -1,0 +1,140 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.*;
+
+class UserSolution
+{
+    // r, c 1 ~ 1000 -> idx 0 ~ 100 0000 => (r - 1) * N + c - 1
+    int N;
+    int[] mvR = {1,-1,0,0};
+    int[] mvC = {0,0,1,-1};
+    int[] parents;
+    int[] IDs;
+    HashMap<Integer, Boolean>[] members;
+    HashMap<Integer, Integer> id2idx;
+    void init(int N)
+    {
+        this.N = N;
+        IDs = new int[N * N + 1];
+        parents = new int[N * N + 1];
+        members = new HashMap[N * N + 1];
+        id2idx = new HashMap<>();
+    }
+
+    int newCivilization(int r, int c, int mID)
+    {
+        int id = check(r, c);
+        int idx = getIdx(r, c);
+        if (id == 0) {
+            // 인접한 부족이 없는경우
+            IDs[idx] = mID;
+            parents[idx] = idx;
+            members[idx] = new HashMap<>();
+            members[idx].put(idx, null);
+            id2idx.put(mID, idx);
+
+            return mID;
+        }
+        int rootIdx = id2idx.get(id);
+        parents[idx] = rootIdx;
+        members[rootIdx].put(idx, null);
+
+        return id;
+    }
+
+    private int check(int r, int c) {
+        int id = 0;
+        int count = 0;
+        Map<Integer, Integer> tmp = new HashMap<>();
+        for (int i = 0 ; i < 4 ; i++) {
+            int nR = r + mvR[i];
+            int nC = c + mvC[i];
+            if (nR < 1 || nR > N || nC < 1 || nC > N) {
+                continue;
+            }
+
+            int idx = getIdx(nR, nC);
+            int rootIdx = find(idx);
+            int tmpId = (members[rootIdx] == null || members[rootIdx].containsKey(idx)) ? IDs[rootIdx] : 0;
+            if (tmpId != 0) {
+                int tmpCount = tmp.getOrDefault(tmpId, 0) + 1;
+                tmp.put(tmpId, tmpCount);
+                if (tmpCount > count) {
+                    id = tmpId;
+                    count = tmpCount;
+                } else if (tmpCount == count && tmpId < id){
+                    id =tmpId;
+                }
+            }
+        }
+        return id;
+    }
+
+    private int find(int idx) {
+        if (parents[idx] == idx) {
+            return idx;
+        }
+        return parents[idx] = find(parents[idx]);
+    }
+
+    private int getIdx(int r, int c) {
+        return (r - 1) * N + c - 1;
+    }
+
+    int removeCivilization(int mID)
+    {
+        if (id2idx.containsKey(mID)) {
+            int idx = id2idx.get(mID);
+            int ans = members[idx].size();
+            IDs[idx] = 0;
+            id2idx.remove(mID);
+
+            return ans;
+        }
+        return 0;
+    }
+
+    int getCivilization(int r ,int c)
+    {
+        int idx = getIdx(r, c);
+        int rootIdx = find(idx);
+        if (members[rootIdx] != null && members[rootIdx].containsKey(idx)) {
+            return IDs[rootIdx];
+        }
+
+        return 0;
+    }
+
+    int getCivilizationArea(int mID)
+    {
+        if (id2idx.containsKey(mID)) {
+            int rootIdx = id2idx.get(mID);
+            return members[rootIdx].size();
+        }
+        return 0;
+    }
+
+    int mergeCivilization(int mID1, int mID2)
+    {
+        // mID2 -> mID1
+        int idx1 = id2idx.get(mID1);
+        int idx2 = id2idx.get(mID2);
+
+        if (members[idx1].size() >= members[idx2].size()) {
+        	for(Integer key : members[idx2].keySet())
+        		members[idx1].put(key, null);
+            parents[idx2] = idx1;
+            id2idx.remove(mID2);
+
+            return members[idx1].size();
+        }
+    	for(Integer key : members[idx1].keySet())
+    		members[idx2].put(key, null);
+        parents[idx1] = idx2;
+        IDs[idx2] = mID1;
+        id2idx.put(mID1, idx2);
+        id2idx.remove(mID2);
+
+        return members[idx2].size();
+    }
+}

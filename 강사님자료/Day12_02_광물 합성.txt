@@ -1,0 +1,166 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution {
+	
+	class Mine {
+		int id;
+		int cost;
+		int content;
+		Mine(int id, int cost, int content) {
+			this.id = id;
+			this.cost = cost;
+			this.content = content; 
+		}
+	}
+	
+	int[] removed; // 삭제된 광물을 관리할 DAT
+	int[] price; // index : id, value : id번 광물의 가격
+	int[] where; // index : id, value : id번 광물이 존재하는 광산, type (hash)
+	int[][] removedCnt; // index : 광산, type, value : 이 광산, type에서 제거된 광물 수 (gather return 용)
+	int idCnt;
+	int fee;
+	ArrayList<Mine>[][]mines; 
+	
+	ArrayList<Integer> test(int budget, int content) {
+		// 최소값을 저장할 임시배열
+		int[][] temp = new int[2][3];
+		// 최소값에 해당하는 광물 id를 저장할 배열
+		int[][] ids = new int[2][3]; 
+		for (int i = 0; i < 2; i++) {
+	        for (int j = 0; j < 3; j++) {
+	            temp[i][j] = 400001;
+	            ids[i][j] = -1; 
+	            for (Mine now : mines[i][j]) {
+	            	// 이미 삭제된 광물이면 skip 
+	                if (removed[now.id] == 1)
+	                    continue; 
+	                // 조건에 맞는 최소 비용의 광물을 찾으면
+	                if (now.content >= content && now.cost < temp[i][j]) {
+	                	// 갱신
+	                    temp[i][j] = now.cost;
+	                    ids[i][j] = now.id; 
+	                }
+	            }
+	        }
+	    }
+		int a = temp[0][0] + temp[0][1] + temp[0][2] + fee;
+	    int b = temp[1][0] + temp[1][1] + temp[1][2] + fee;
+	    int c = Math.min(temp[0][0], temp[1][0]) +
+	    		Math.min(temp[0][1], temp[1][1]) +
+	    		Math.min(temp[0][2], temp[1][2]) + fee * 2; 
+	    int res = Math.min(a, Math.min(b, c)); 
+	    
+	    ArrayList<Integer>ret = new ArrayList<>(); 
+	    
+	    if(res > budget) {
+	    	ret.add(-1); 
+	    	return ret; 
+	    }
+	    
+	    if (res == a) {
+	    	// 0번 광물에서만 다 구했다면, ids[0]에 있는 광물 id를 모두 저장
+	        ret.add(ids[0][0]);
+	        ret.add(ids[0][1]);
+	        ret.add(ids[0][2]);
+	    }
+	    else if (res == b) {
+	    	// 1번 광물에서만 다 구했다면, ids[1]에 있는 광물 id를 모두 저장
+	    	ret.add(ids[1][0]);
+	    	ret.add(ids[1][1]);
+	    	ret.add(ids[1][2]);
+	    }
+	    else {
+	    	// 아니면 섞어서 썼으니 하나씩 찾아서 저장
+	        if (temp[0][0] < temp[1][0]) ret.add(ids[0][0]);
+	        else ret.add(ids[1][0]);
+
+	        if (temp[0][1] < temp[1][1]) ret.add(ids[0][1]);
+	        else ret.add(ids[1][1]);
+
+	        if (temp[0][2] < temp[1][2]) ret.add(ids[0][2]);
+	        else ret.add(ids[1][2]);
+	    }
+	    // 최종적으로는 가격도 알아야 하니 저장.
+	    ret.add(res);
+	    
+	    
+	    // 즉, 못만들면 -1 하나만 들어있는 arraylist를 return
+	    // 만들수 있으면 {광물1, 광물2, 광물3, 가격} return 
+	    return ret; 
+	}
+  
+	public void init(int mShipFee) {
+	
+		removed = new int[3501]; // gather call count = 3,500
+		price = new int[3501];
+		where = new int[3501];
+		
+		removedCnt = new int[2][3];
+		mines = new ArrayList[2][3];
+		for(int i = 0; i < 2; i++) {
+			for(int j = 0; j < 3; j++) {
+				mines[i][j] = new ArrayList<>(); 
+			}
+		}
+		
+		idCnt = 0;
+		fee = mShipFee; 
+		return; 
+	}
+	 
+	// 3,500 
+	public int gather(int mMineId, int mType, int mCost, int mContent) {
+		mines[mMineId][mType].add(new Mine(idCnt, mCost, mContent));
+		price[idCnt] = mCost;
+		// id번 광물이 어떤 광산 + type에 있는지 보관
+		where[idCnt] = mMineId * 10 + mType;
+		idCnt++; 
+	    return mines[mMineId][mType].size() - removedCnt[mMineId][mType];
+	}
+
+	// 300 x 
+	Main.Result mix(int mBudget) {
+	  	Main.Result res = new Main.Result();
+	  	
+	  	int left = 1; // 최소 content
+	  	int right = 1000000; // 최대 content
+	  	int cost = 0;
+	  	ArrayList<Integer>usedMines = new ArrayList<>();  
+	  	
+	  	// parametric search
+	  	while(left <= right) {
+	  		int mid = (left + right) / 2;
+	  		ArrayList<Integer>temp = test(mBudget, mid);
+	  		// test 통과시 
+	  		if(temp.get(0) != -1) {
+	  			// content를 늘려보자
+	  			left = mid + 1; 
+	  			// 지금 cost와 선정된 광물들을 보관
+	  			cost = temp.get(3);
+	  			usedMines = temp; 
+	  		}
+	  		else {
+	  			// content를 줄여보자
+	  			right = mid - 1;
+	  		}
+	  	}
+	  	
+	  	// mix가 불가능했다면 -> cost = 0에서 변하지 않음 (또는 usedMines.size() == 0) 
+	  	if(cost == 0)
+	  		return res; // {0, 0} return; 
+	  	
+	  	// 사용된 광물들 삭제 표기(실제로 삭제는 안함) 
+	  	for(int i = 0; i < 3; i++) {
+	  		int id = usedMines.get(i);
+	  		removed[id] = 1; 
+	  		
+	  		int mineId = where[id] / 10;
+	  		int type = where[id] % 10;
+	  		removedCnt[mineId][type]++; // 이 광산 + type에서 광물이 하나 삭제되었다.
+	  	}
+	  	res.mCost = cost;
+	  	res.mContent = right; 
+	  	return res; 
+	}
+}

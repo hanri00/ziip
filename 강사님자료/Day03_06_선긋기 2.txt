@@ -1,0 +1,57 @@
+import java.io.*;
+import java.util.*;
+
+class UserSolution
+{
+	TreeMap<Integer, Integer> ladder[];
+	public void init()
+	{
+		ladder = new TreeMap[101];
+		for(int i = 0; i < 101; i++)
+			ladder[i] = new TreeMap<>();
+	}
+	
+	public void add(int x, int y)
+	{
+		ladder[x].put(y, null);
+	}
+    
+	public int getCrossCnt(int lineID)
+	{
+		int nowX = lineID;
+		int nowY = 0;
+		int ret = 0;
+		while(true) {
+			Map.Entry<Integer, Integer> nxt1 = ladder[nowX].higherEntry(nowY);
+			Map.Entry<Integer, Integer> nxt2 = ladder[nowX-1].higherEntry(nowY);
+			if(nxt1 == null && nxt2 == null) break;
+			if(nxt1 == null) 						{nowY = nxt2.getKey(); nowX--;}
+			else if(nxt2 == null) 					{nowY = nxt1.getKey(); nowX++;}
+			else if(nxt1.getKey() < nxt2.getKey())	{nowY = nxt1.getKey(); nowX++;}
+			else									{nowY = nxt2.getKey(); nowX--;}
+			ret++;
+		}
+		return ret; 
+	}
+
+	public int getID(int x, int y)
+	{
+		int nowX = x;
+		int nowY = y;
+		while(true) {
+			Map.Entry<Integer, Integer> nxt1 = ladder[nowX].lowerEntry(nowY);
+			Map.Entry<Integer, Integer> nxt2 = ladder[nowX-1].lowerEntry(nowY);
+			if(nxt1 == null && nxt2 == null) break;
+			if(nxt1 == null) 						{nowY = nxt2.getKey(); nowX--;}
+			else if(nxt2 == null) 					{nowY = nxt1.getKey(); nowX++;}
+			else if(nxt1.getKey() > nxt2.getKey())	{nowY = nxt1.getKey(); nowX++;}
+			else									{nowY = nxt2.getKey(); nowX--;}
+		}
+		return nowX;
+	}
+	
+	public void remove(int x, int y)
+	{
+		ladder[x].remove(y);
+	}
+}
